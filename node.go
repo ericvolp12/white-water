@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	zeromq "github.com/ericvolp12/wild-water/zeromq"
+	zeromq "github.com/ericvolp12/white-water/zeromq"
 )
 
 type arrayFlags []string
