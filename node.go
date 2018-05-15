@@ -12,11 +12,13 @@ type arrayFlags []string
 
 // Message is a Chistributed message struct
 type Message struct {
-	Type  string `json:"type"`
-	ID    int    `json:"id"`
-	Key   string `json:"key"`
-	Error string `json:"error"`
-	Value string `json:"value"`
+	Type        string   `json:"type"`
+	ID          int      `json:"id"`
+	Destination []string `json:"destination"`
+	Key         string   `json:"key"`
+	Error       string   `json:"error"`
+	Source      string   `json:"source"`
+	Value       string   `json:"value"`
 }
 
 func (i *arrayFlags) String() string {
@@ -54,7 +56,7 @@ func main() {
 		fmt.Printf("Error identifying as: %v, %v\n", *nodeName, err)
 	}
 
-	sub, err := zmq.NewSocket(zmq.PUB)
+	sub, err := zmq.NewSocket(zmq.SUB)
 	if err != nil {
 		fmt.Printf("Error creating subscriber: %v\n", err)
 	}
@@ -64,25 +66,32 @@ func main() {
 
 	topic := *nodeName + " "
 
-	err = sub.SetSubscribe(topic)
+	err = sub.SetLinger(0)
+	if err != nil {
+		fmt.Printf("Error lingering: %v\n", err)
+	}
+
+	err = sub.SetSubscribe(*nodeName)
 	if err != nil {
 		fmt.Printf("Error subscribing to: %v, %v\n", topic, err)
 	}
 
 	for {
-		msg, err := sub.RecvMessageBytes(0)
+		msg, err := sub.RecvMessage(0)
 		if err != nil {
 			break
 		}
-		fmt.Println("Message received")
+		fmt.Println("Message received:")
 
 		cMsg := &Message{}
 		// Unwrap the message from JSON to Go
-		json.Unmarshal(msg[1], cMsg)
+		// Index 2 should be the json payload
+		json.Unmarshal([]byte(msg[2]), cMsg)
 		// Print the type of the message
-		fmt.Printf("Type: %v", cMsg.Type)
+		fmt.Printf("\tType: %v\n", cMsg.Type)
+		fmt.Printf("\tFull message: %v\n", msg[2])
 		if cMsg.Type == "hello" {
-			reply, err := json.Marshal(Message{Type: "helloResponse"})
+			reply, err := json.Marshal(Message{Type: "helloResponse", Source: *nodeName})
 			if err != nil {
 				break
 			}
