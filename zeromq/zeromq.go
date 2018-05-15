@@ -93,7 +93,7 @@ func ReceiveMessages(c *Client) {
 		fmt.Printf("\tFull message: %v\n", msg[2])
 		if cMsg.Type == "hello" {
 			// Send a hello response
-			err = SendMessage(c, Message{Type: "helloResponse", Source: c.nodeName})
+			err = sendMessage(c, Message{Type: "helloResponse", Source: c.nodeName})
 			if err != nil {
 				break
 			}
@@ -102,8 +102,8 @@ func ReceiveMessages(c *Client) {
 	}
 }
 
-// SendMessage sends a message on a client's requester
-func SendMessage(c *Client, msg Message) error {
+// sendMessage sends a message on a client's requester
+func sendMessage(c *Client, msg Message) error {
 	// Marshal message object into json
 	formattedMsg, err := json.Marshal(msg)
 	if err != nil {
@@ -118,4 +118,32 @@ func SendMessage(c *Client, msg Message) error {
 		return fmt.Errorf("Error sending message: zero bytes sent")
 	}
 	return nil
+}
+
+// Broadcast sends a message to all of a client's peers
+func Broadcast(c *Client, msg Message) error {
+	msg.Destination = c.peers
+	fmt.Printf("Broadcasting message to all peers...\n")
+	return sendMessage(c, msg)
+}
+
+// SendToPeer sends to a specific peer
+func SendToPeer(c *Client, msg Message, peer string) error {
+	msg.Destination = []string{peer}
+	fmt.Printf("Sending message one peer...\n")
+	return sendMessage(c, msg)
+}
+
+// SendToPeers sends to a set of peers
+func SendToPeers(c *Client, msg Message, peers []string) error {
+	msg.Destination = peers
+	fmt.Printf("Sending message to specific peers...\n")
+	return sendMessage(c, msg)
+}
+
+// SendToBroker sends a message to the broker and no one else
+func SendToBroker(c *Client, msg Message) error {
+	msg.Destination = []string{}
+	fmt.Printf("Sending message to broker...\n")
+	return sendMessage(c, msg)
 }
