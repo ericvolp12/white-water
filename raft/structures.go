@@ -1,5 +1,6 @@
 package raft
 
+
 type operation int
 
 const (
