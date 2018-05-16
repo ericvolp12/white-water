@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"sync"
 
 	messages "github.com/ericvolp12/white-water/messages"
+	storage "github.com/ericvolp12/white-water/storage"
 )
 
 type arrayFlags []string
@@ -34,23 +34,13 @@ func main() {
 
 	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
-	helloIncoming := make(chan messages.Message)
-
-	client.Subscribe("hello", &helloIncoming)
-
 	wg := sync.WaitGroup{}
 
 	go client.ReceiveMessages()
-
 	wg.Add(1)
 
-	for range helloIncoming {
-		fmt.Printf("Hello Handler Firing...\n")
-		err := client.SendToBroker(messages.Message{Type: "helloResponse", Source: *nodeName})
-		if err != nil {
-			break
-		}
-	}
+	go storage.Initialize(&client)
+	wg.Add(1)
 
 	wg.Wait()
 

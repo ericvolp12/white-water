@@ -11,12 +11,12 @@ import (
 // Message is a Chistributed message struct
 type Message struct {
 	Type        string   `json:"type"`
-	ID          int      `json:"id"`
-	Destination []string `json:"destination"`
-	Key         string   `json:"key"`
-	Error       string   `json:"error"`
-	Source      string   `json:"source"`
-	Value       string   `json:"value"`
+	ID          int      `json:"id,omitempty"`
+	Destination []string `json:"destination,omitempty"`
+	Key         string   `json:"key,omitempty"`
+	Error       string   `json:"error,omitempty"`
+	Source      string   `json:"source,omitempty"`
+	Value       string   `json:"value,omitempty"`
 }
 
 // Filter is a struct for associating incoming message types to callback channels
@@ -33,8 +33,8 @@ type Client struct {
 	incoming  *chan Message // Channel for incoming messages
 	filters   []Filter
 	filterMux *sync.Mutex
-	nodeName  string   // Name of this node
-	peers     []string // Names of peers of this node
+	NodeName  string   // Name of this node
+	Peers     []string // Names of peers of this node
 }
 
 // CreateClient defines a client based on input information
@@ -72,7 +72,7 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 		fmt.Printf("Error subscribing to: %v, %v\n", nodeName, err)
 	}
 	// Create our client object
-	client := Client{req: requester, sub: sub, nodeName: nodeName, peers: peers}
+	client := Client{req: requester, sub: sub, NodeName: nodeName, Peers: peers}
 
 	// Create the channels for incoming and outgoing messages
 	incoming := make(chan Message, 500) // Buffer size 500
@@ -97,7 +97,7 @@ func DeleteClient(c *Client) {
 
 // Subscribe takes a message type and a incoming channel and registers a new filter
 func (c *Client) Subscribe(mType string, incoming *chan Message) error {
-	fmt.Printf("MUX: Registering new filter for message type: '%v' on Client: %v\n", mType, c.nodeName)
+	fmt.Printf("MUX: Registering new filter for message type: '%v' on Client: %v\n", mType, c.NodeName)
 	filter := Filter{Incoming: incoming, Type: mType}
 	c.filterMux.Lock()
 	c.filters = append(c.filters, filter)
@@ -162,7 +162,7 @@ func (c *Client) sendMessage(msg Message) error {
 
 // Broadcast sends a message to all of a client's peers
 func (c *Client) Broadcast(msg Message) error {
-	msg.Destination = c.peers
+	msg.Destination = c.Peers
 	fmt.Printf("Broadcasting message to all peers...\n")
 	return c.sendMessage(msg)
 }
@@ -185,5 +185,15 @@ func (c *Client) SendToPeers(msg Message, peers []string) error {
 func (c *Client) SendToBroker(msg Message) error {
 	msg.Destination = []string{}
 	fmt.Printf("Sending message to broker...\n")
+	msg.Print()
 	return c.sendMessage(msg)
+}
+
+// Print prints a message
+func (m *Message) Print() {
+	formattedMsg, err := json.Marshal(*m)
+	if err != nil {
+		fmt.Printf("Error printing message: %v\n", err)
+	}
+	fmt.Printf("Message: %v\n", string(formattedMsg))
 }
