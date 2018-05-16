@@ -36,7 +36,7 @@ func main() {
 
 	helloIncoming := make(chan zeromq.Message)
 
-	client.Subscribe("hello", helloIncoming)
+	client.Subscribe("hello", &helloIncoming)
 
 	wg := sync.WaitGroup{}
 

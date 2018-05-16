@@ -20,17 +20,17 @@ type Message struct {
 
 // Filter is a struct for associating incoming message types to callback channels
 type Filter struct {
-	Type     string       // The type of message to filter on
-	Incoming chan Message // The Callback channel for arriving messages
+	Type     string        // The type of message to filter on
+	Incoming *chan Message // The Callback channel for arriving messages
 }
 
 // Client defines a messenger client, they can send or receive messages
 type Client struct {
-	req        *zmq.Socket  // Requester socket for the client
-	sub        *zmq.Socket  // Subscriber socket for the client
-	outgoing   chan Message // Channel for outgoing messages
-	incoming   chan Message // Channel for incoming messages
-	filterChan chan Filter  // Channel for incoming filters
+	req        *zmq.Socket   // Requester socket for the client
+	sub        *zmq.Socket   // Subscriber socket for the client
+	outgoing   *chan Message // Channel for outgoing messages
+	incoming   *chan Message // Channel for incoming messages
+	filterChan *chan Filter  // Channel for incoming filters
 	filters    []Filter
 	nodeName   string   // Name of this node
 	peers      []string // Names of peers of this node
@@ -73,14 +73,14 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	// Create our client object
 	client := Client{req: requester, sub: sub, nodeName: nodeName, peers: peers}
 
-	// Create the channels for incoming and outgoing messages
-	incoming := make(chan Message)
-	outgoing := make(chan Message)
-	filters := make(chan Filter)
+	// Create the channels for incoming and outgoing messages and filters
+	incoming := make(chan Message, 500) // Buffer size 500
+	outgoing := make(chan Message, 500) // Buffer size 500
+	filters := make(chan Filter, 500)   // Buffer size 500
 
-	client.incoming = incoming
-	client.outgoing = outgoing
-	client.filterChan = filters
+	client.incoming = &incoming
+	client.outgoing = &outgoing
+	client.filterChan = &filters
 
 	// Send it back
 	return client
@@ -95,10 +95,10 @@ func DeleteClient(c *Client) {
 }
 
 // Subscribe takes a message type and a incoming channel and registers a new filter
-func (c *Client) Subscribe(mType string, incoming chan Message) error {
+func (c *Client) Subscribe(mType string, incoming *chan Message) error {
 	fmt.Printf("Registering new filter for message type: '%v' on Client: %v\n", mType, c.nodeName)
 	filter := Filter{Incoming: incoming, Type: mType}
-	c.filterChan <- filter
+	*c.filterChan <- filter
 	return nil
 }
 
@@ -111,7 +111,7 @@ func (c *Client) ReceiveMessages() {
 			break
 		}
 
-		for filter := range c.filterChan {
+		for filter := range *c.filterChan {
 			c.filters = append(c.filters, filter)
 		}
 
@@ -126,11 +126,11 @@ func (c *Client) ReceiveMessages() {
 		fmt.Printf("\tType: %v\n", cMsg.Type)
 		fmt.Printf("\tFull message: %v\n", msg[2])
 
-		c.incoming <- cMsg
+		*c.incoming <- cMsg
 
 		for _, filter := range c.filters {
 			if cMsg.Type == filter.Type {
-				filter.Incoming <- cMsg
+				*filter.Incoming <- cMsg
 			}
 		}
 	}
