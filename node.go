@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"sync"
 
 	zeromq "github.com/ericvolp12/white-water/zeromq"
 )
@@ -32,6 +34,24 @@ func main() {
 
 	client := zeromq.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
-	zeromq.ReceiveMessages(&client)
+	helloIncoming := make(chan zeromq.Message)
+
+	client.Subscribe("hello", helloIncoming)
+
+	wg := sync.WaitGroup{}
+
+	go client.ReceiveMessages()
+
+	wg.Add(1)
+
+	for range helloIncoming {
+		fmt.Printf("Hello Handler Firing...\n")
+		err := client.SendToBroker(zeromq.Message{Type: "helloResponse", Source: *nodeName})
+		if err != nil {
+			break
+		}
+	}
+
+	wg.Wait()
 
 }
