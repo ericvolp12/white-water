@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	zeromq "github.com/ericvolp12/white-water/zeromq"
+	messages "github.com/ericvolp12/white-water/messages"
 )
 
 type arrayFlags []string
@@ -32,9 +32,9 @@ func main() {
 
 	flag.Parse()
 
-	client := zeromq.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
+	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
-	helloIncoming := make(chan zeromq.Message)
+	helloIncoming := make(chan messages.Message)
 
 	client.Subscribe("hello", &helloIncoming)
 
@@ -46,7 +46,7 @@ func main() {
 
 	for range helloIncoming {
 		fmt.Printf("Hello Handler Firing...\n")
-		err := client.SendToBroker(zeromq.Message{Type: "helloResponse", Source: *nodeName})
+		err := client.SendToBroker(messages.Message{Type: "helloResponse", Source: *nodeName})
 		if err != nil {
 			break
 		}

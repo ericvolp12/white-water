@@ -1,8 +1,9 @@
-package zeromq
+package messages
 
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	zmq "github.com/pebbe/zmq4"
 )
@@ -26,14 +27,14 @@ type Filter struct {
 
 // Client defines a messenger client, they can send or receive messages
 type Client struct {
-	req        *zmq.Socket   // Requester socket for the client
-	sub        *zmq.Socket   // Subscriber socket for the client
-	outgoing   *chan Message // Channel for outgoing messages
-	incoming   *chan Message // Channel for incoming messages
-	filterChan *chan Filter  // Channel for incoming filters
-	filters    []Filter
-	nodeName   string   // Name of this node
-	peers      []string // Names of peers of this node
+	req       *zmq.Socket   // Requester socket for the client
+	sub       *zmq.Socket   // Subscriber socket for the client
+	outgoing  *chan Message // Channel for outgoing messages
+	incoming  *chan Message // Channel for incoming messages
+	filters   []Filter
+	filterMux *sync.Mutex
+	nodeName  string   // Name of this node
+	peers     []string // Names of peers of this node
 }
 
 // CreateClient defines a client based on input information
@@ -73,14 +74,14 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	// Create our client object
 	client := Client{req: requester, sub: sub, nodeName: nodeName, peers: peers}
 
-	// Create the channels for incoming and outgoing messages and filters
+	// Create the channels for incoming and outgoing messages
 	incoming := make(chan Message, 500) // Buffer size 500
 	outgoing := make(chan Message, 500) // Buffer size 500
-	filters := make(chan Filter, 500)   // Buffer size 500
 
 	client.incoming = &incoming
 	client.outgoing = &outgoing
-	client.filterChan = &filters
+
+	client.filterMux = &sync.Mutex{}
 
 	// Send it back
 	return client
@@ -96,9 +97,12 @@ func DeleteClient(c *Client) {
 
 // Subscribe takes a message type and a incoming channel and registers a new filter
 func (c *Client) Subscribe(mType string, incoming *chan Message) error {
-	fmt.Printf("Registering new filter for message type: '%v' on Client: %v\n", mType, c.nodeName)
+	fmt.Printf("MUX: Registering new filter for message type: '%v' on Client: %v\n", mType, c.nodeName)
 	filter := Filter{Incoming: incoming, Type: mType}
-	*c.filterChan <- filter
+	c.filterMux.Lock()
+	c.filters = append(c.filters, filter)
+	c.filterMux.Unlock()
+	fmt.Printf("MUX: Filter registered!\n")
 	return nil
 }
 
@@ -108,19 +112,15 @@ func (c *Client) ReceiveMessages() {
 	for {
 		msg, err := c.sub.RecvMessage(0)
 		if err != nil {
+			fmt.Printf("Error receiveing message: %v\n", err)
 			break
 		}
-
-		for filter := range *c.filterChan {
-			c.filters = append(c.filters, filter)
-		}
-
 		fmt.Println("Message received:")
 
 		cMsg := Message{}
 		// Unwrap the message from JSON to Go
 		// Index 2 should be the json payload
-		json.Unmarshal([]byte(msg[2]), cMsg)
+		json.Unmarshal([]byte(msg[2]), &cMsg)
 
 		// Print the type of the message
 		fmt.Printf("\tType: %v\n", cMsg.Type)
@@ -128,14 +128,18 @@ func (c *Client) ReceiveMessages() {
 
 		*c.incoming <- cMsg
 
+		fmt.Printf("MUX: Iterating over filters...\n")
+		c.filterMux.Lock()
 		for _, filter := range c.filters {
 			if cMsg.Type == filter.Type {
 				*filter.Incoming <- cMsg
 			}
 		}
+		c.filterMux.Unlock()
+		fmt.Printf("MUX: Finished iterating!\n")
+
 	}
 	fmt.Printf("Ending message receive loop...\n")
-
 }
 
 // sendMessage sends a message on a client's requester
