@@ -95,19 +95,24 @@ func DeleteClient(c *Client) {
 }
 
 // Subscribe takes a message type and a incoming channel and registers a new filter
-func (c Client) Subscribe(mType string, incoming chan Message) error {
+func (c *Client) Subscribe(mType string, incoming chan Message) error {
+	fmt.Printf("Registering new filter for message type: '%v' on Client: %v\n", mType, c.nodeName)
 	filter := Filter{Incoming: incoming, Type: mType}
 	c.filterChan <- filter
 	return nil
 }
 
 // ReceiveMessages starts a duty loop to handle ZeroMQ Messages on our subscriber
-func (c Client) ReceiveMessages() {
+func (c *Client) ReceiveMessages() {
 	fmt.Printf("Starting message receive loop...\n")
 	for {
 		msg, err := c.sub.RecvMessage(0)
 		if err != nil {
 			break
+		}
+
+		for filter := range c.filterChan {
+			c.filters = append(c.filters, filter)
 		}
 
 		fmt.Println("Message received:")
@@ -134,7 +139,7 @@ func (c Client) ReceiveMessages() {
 }
 
 // sendMessage sends a message on a client's requester
-func (c Client) sendMessage(msg Message) error {
+func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
 	formattedMsg, err := json.Marshal(msg)
 	if err != nil {
@@ -152,28 +157,28 @@ func (c Client) sendMessage(msg Message) error {
 }
 
 // Broadcast sends a message to all of a client's peers
-func (c Client) Broadcast(msg Message) error {
+func (c *Client) Broadcast(msg Message) error {
 	msg.Destination = c.peers
 	fmt.Printf("Broadcasting message to all peers...\n")
 	return c.sendMessage(msg)
 }
 
 // SendToPeer sends to a specific peer
-func (c Client) SendToPeer(msg Message, peer string) error {
+func (c *Client) SendToPeer(msg Message, peer string) error {
 	msg.Destination = []string{peer}
 	fmt.Printf("Sending message one peer...\n")
 	return c.sendMessage(msg)
 }
 
 // SendToPeers sends to a set of peers
-func (c Client) SendToPeers(msg Message, peers []string) error {
+func (c *Client) SendToPeers(msg Message, peers []string) error {
 	msg.Destination = peers
 	fmt.Printf("Sending message to specific peers...\n")
 	return c.sendMessage(msg)
 }
 
 // SendToBroker sends a message to the broker and no one else
-func (c Client) SendToBroker(msg Message) error {
+func (c *Client) SendToBroker(msg Message) error {
 	msg.Destination = []string{}
 	fmt.Printf("Sending message to broker...\n")
 	return c.sendMessage(msg)
