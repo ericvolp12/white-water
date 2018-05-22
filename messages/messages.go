@@ -160,7 +160,9 @@ func (c *Client) sendMessage(msg Message) error {
 		fmt.Printf("Error sending message: zero bytes sent\n")
 		return fmt.Errorf("Error sending message: zero bytes sent")
 	}
+	// Wait for an ack response
 	ack, err := c.req.RecvMessage(0)
+	// Print out the ack
 	fmt.Printf("Ack: %v\n", ack)
 	return nil
 }
