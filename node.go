@@ -43,6 +43,9 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
+	go messages.helloHandler(client)
+	wg.Add(1)
+
 	go client.ReceiveMessages()
 	wg.Add(1)
 

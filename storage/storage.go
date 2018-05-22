@@ -76,9 +76,6 @@ func Initialize(client *messages.Client) {
 
 	wg := sync.WaitGroup{}
 
-	go state.helloHandler(client)
-	wg.Add(1)
-
 	go state.getHandler(client)
 	wg.Add(1)
 
@@ -86,21 +83,6 @@ func Initialize(client *messages.Client) {
 	wg.Add(1)
 
 	wg.Wait()
-}
-
-// helloHandler handles hello messages...
-func (s *State) helloHandler(client *messages.Client) {
-	helloIncoming := make(chan messages.Message, 500)
-
-	client.Subscribe("hello", &helloIncoming)
-
-	for range helloIncoming {
-		fmt.Printf("Hello Handler Firing...\n")
-		err := client.SendToBroker(messages.Message{Type: "helloResponse", Source: client.NodeName})
-		if err != nil {
-			break
-		}
-	}
 }
 
 // getHandler handles get messages...
