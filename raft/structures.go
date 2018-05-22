@@ -1,5 +1,9 @@
 package raft
 
+import (
+	"sync"
+	"time"
+)
 
 type operation int
 
@@ -27,12 +31,13 @@ type volatileState struct {
 
 type Sailor struct {
 	// Contains filtered or unexported fields
-	log         []entry
-	Table       map[string]string
-	currentTerm uint
-	votedFor    int
-	volatile    *volatileState
-	leader      *leaderState
+	log             []entry
+	currentTerm     uint
+	votedFor        int
+	volatile        *volatileState
+	leader          *leaderState
+	lastMessageTime time.Time
+	electionLock    sync.RWMutex
 }
 
 type appendMessage struct {
