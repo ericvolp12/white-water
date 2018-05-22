@@ -27,13 +27,8 @@ type State struct {
 	Map map[string]ValueStamp // The map relating keys to values
 }
 
-// GetWithStamp gets a ValueStamp from the cluster
-func (s *State) GetWithStamp(key string) ValueStamp {
-	return s.Map[key]
-}
-
-// Get gets a string from the cluster without the timestamp
-func (s *State) Get(key string) (string, error) {
+// getLocal gets a string from the local state without the timestamp
+func (s *State) getLocal(key string) (string, error) {
 	val := s.Map[key]
 	if val.Updated.IsZero() {
 		return "", fmt.Errorf("No such key: %v", key)
@@ -41,11 +36,36 @@ func (s *State) Get(key string) (string, error) {
 	return val.Value, nil
 }
 
-// Set takes a key and value and creates a new ValueStamp and commits it
-func (s *State) Set(key string, value string) error {
+// getLocalWithStamp gets a string from the local state with timestamp
+func (s *State) getLocalWithStamp(key string) (ValueStamp, error) {
+	val := s.Map[key]
+	if val.Updated.IsZero() {
+		return ValueStamp{}, fmt.Errorf("No such key: %v", key)
+	}
+	return val, nil
+}
+
+// setLocal takes a key and value and creates a new ValueStamp and commits it
+// to the local state
+func (s *State) setLocal(key string, value string) error {
 	val := ValueStamp{Value: value, Updated: time.Now()}
 	s.Map[key] = val
 	return nil
+}
+
+// GetWithStamp gets a ValueStamp from the cluster
+func (s *State) GetWithStamp(key string) (ValueStamp, error) {
+	return s.getLocalWithStamp(key)
+}
+
+// Get gets a string from the cluster without the timestamp
+func (s *State) Get(key string) (string, error) {
+	return s.getLocal(key)
+}
+
+// Set takes a key and value and creates a new ValueStamp and commits it
+func (s *State) Set(key string, value string) error {
+	return s.setLocal(key, value)
 }
 
 // Initialize starts up the message listeners for the interface
