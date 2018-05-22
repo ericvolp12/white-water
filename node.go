@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"sync"
 
 	messages "github.com/ericvolp12/white-water/messages"
@@ -30,7 +31,13 @@ func main() {
 	nodeName := flag.String("node-name", "", "The name of a node")
 	flag.Var(&peers, "peer", "A peer for a given node.")
 
+	debugFlag := flag.Bool("debug", false, "Whether or not to provide debugging output.")
+
 	flag.Parse()
+
+	if *debugFlag {
+		fmt.Println("Node started with debugging...")
+	}
 
 	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 

@@ -147,16 +147,21 @@ func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
 	formattedMsg, err := json.Marshal(msg)
 	if err != nil {
+		fmt.Printf("Error marshalling message: %v\n", err)
 		return err
 	}
 	// Send message via requester
 	sent, err := c.req.SendMessage(formattedMsg)
 	if err != nil {
+		fmt.Printf("Error sending message: %v\n", err)
 		return fmt.Errorf("Error sending message: %v", err)
 	}
 	if sent <= 0 {
+		fmt.Printf("Error sending message: zero bytes sent\n")
 		return fmt.Errorf("Error sending message: zero bytes sent")
 	}
+	ack, err := c.req.RecvMessage(0)
+	fmt.Printf("Ack: %v\n", ack)
 	return nil
 }
 

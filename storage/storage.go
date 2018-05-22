@@ -146,10 +146,11 @@ func (s *State) setHandler(client *messages.Client) {
 		}
 		// If we set a value, send a response to the broker
 		err = client.SendToBroker(messages.Message{
-			Type:  "setResponse",
-			ID:    msg.ID,
-			Key:   msg.Key,
-			Value: msg.Value,
+			Type:   "setResponse",
+			Source: client.NodeName,
+			ID:     msg.ID,
+			Key:    msg.Key,
+			Value:  msg.Value,
 		})
 		if err != nil {
 			break
