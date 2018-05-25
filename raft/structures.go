@@ -52,23 +52,23 @@ type Sailor struct {
 }
 
 type appendMessage struct { //type="appendEntries"
-	term         uint
-	leaderId     int
-	prevLogIndex uint
-	prevLogTerm  uint
-	entries      []entry
-	leaderCommit uint
+	Term         uint
+	LeaderId     string
+	PrevLogIndex uint
+	PrevLogTerm  uint
+	Entries      []entry
+	LeaderCommit uint
 }
 
 type requestVote struct { //type="requestVote"
-	term         uint
-	candidateId  uint
-	lastLogIndex uint
-	lastLogTerm  uint
+	Term         uint
+	CandidateId  string
+	LastLogIndex uint
+	LastLogTerm  uint
 }
 
 type reply struct {
-    term uint
-    voteGranted bool
-    success bool
+    Term uint
+    VoteGranted bool
+    Success bool
 }

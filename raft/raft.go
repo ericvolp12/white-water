@@ -60,10 +60,10 @@ func (s *Sailor) handle_timeout() {
 
     // Fill RequestVotes RPC struct
     newmsg := make(requestVote)
-    newmsg.term = s.currentTerm
-    newmsg.candidateId = 0 // Current Node ID
-    newmsg.lastLogIndex = len(s.log) - 1    // Index of last entry in log
-    newmsg.lastLogTerm = s.log[newmsg.lastLogIndex].term    // The term of that entry index
+    newmsg.Term = s.currentTerm
+    newmsg.CandidateId = 0 // Current Node ID
+    newmsg.LastLogIndex = len(s.log) - 1    // Index of last entry in log
+    newmsg.LastLogTerm = s.log[newmsg.lastLogIndex].term    // The term of that entry index
 
     // SEND newmsg REQUESTVOTE RPC BROADCAST
     zmqMsg := messages.Message{}
