@@ -41,6 +41,7 @@ func main() {
 
 	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
+	_ = storage.InitializeState()
 	_, _, _, _, _ = initializeChannels(&client)
 
 	wg := sync.WaitGroup{}
@@ -49,9 +50,6 @@ func main() {
 	wg.Add(1)
 
 	go client.ReceiveMessages()
-	wg.Add(1)
-
-	go storage.Initialize()
 	wg.Add(1)
 
 	wg.Wait()

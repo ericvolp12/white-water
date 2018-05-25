@@ -1,8 +1,6 @@
 package raft
 
-func handleGetRequest(string key) (string, error) {
-	//Depends on code in branch
-	//Make get transaction
-	//Apply transaction
-	return "", nil
+func handleGetRequest(string key, s *Sailor, st *storage.State) (string, error) {
+	gt := GenerateTransaction(storage.GetOp, key, "")
+	return st.ApplyTransaction(gt)
 }

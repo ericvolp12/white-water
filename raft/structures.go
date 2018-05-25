@@ -4,19 +4,9 @@ import "time"
 
 type GetReply string
 
-type operation int
-
-const (
-	getOp operation = iota
-	setOp
-	deleteOp
-)
-
 type entry struct {
-	op    operation
 	term  uint
-	key   string
-	value string
+	trans Transaction
 }
 
 type leaderState struct {

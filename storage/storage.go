@@ -74,10 +74,11 @@ func (s *State) Set(key string, value string) error {
 }
 
 // Initialize starts up the message listeners for the interface
-func Initialize() {
+func InitializeState() State {
 	state := State{}
 
 	state.Map = make(map[string]ValueStamp)
+	return state
 }
 
 // Apply transaction takes a transaction struct and

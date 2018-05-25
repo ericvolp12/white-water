@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool) {
+func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool, state *State) {
 	for {
 		select {
 		case msg := <-timeouts:
@@ -18,6 +18,15 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			case s.state == follower:
 				select {
 				case msg := <-gets:
+					val, err := handleGetRequest(msg.key, s, state)
+					rep := makeReply(s, msg, "getReply")
+					rep.Key = msg.key
+					rep.Value = val
+					rep.Error = err
+					err := s.client.sendMessage(rep)
+					if err != nil {
+						//handle error
+					}
 					//Gets handle - Joseph
 				case msg := <-sets:
 					//Sets handle - Joseph
@@ -49,6 +58,15 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			}
 		}
 	}
+}
+
+func makeReply(s *Sailor, msg *messages.Message, typestr string) *messages.Message {
+	rep := messages.Message{}
+	rep.Type = typestr
+	rep.ID = 0
+	rep.Destination = []string{msg.Source}
+	rep.Source = s.client.NodeName
+	return rep
 }
 
 // Encodes different Raft message RPC structs into strings for ZMQ type messages
