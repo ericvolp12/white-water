@@ -32,14 +32,14 @@ type volatileState struct {
 type position int
 
 const (
-    follower position = iota
-    candidate
-    leader
+	follower position = iota
+	candidate
+	leader
 )
 
 type Sailor struct {
 	// Contains filtered or unexported fields
-    state  position
+	state           position
 	log             []entry
 	currentTerm     uint
 	votedFor        int
@@ -59,9 +59,9 @@ type appendMessage struct {
 }
 
 type requestVote struct {
-    term    uint
-    candidateId uint
-    lastLogIndex    uint
-    lastLogTerm     uint
-    votGranted   bool
+	term         uint
+	candidateId  uint
+	lastLogIndex uint
+	lastLogTerm  uint
+	votGranted   bool
 }
