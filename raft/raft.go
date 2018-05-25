@@ -12,7 +12,11 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 		select {
 		case msg := <-timeouts:
 			//timeouts message handle
-            handle_timeout()
+            err := handle_timeout()
+            if err != nil {
+                // handle error?
+                fmt.Printf("handle_timeout error\n");
+            }
 			//Max
 		default:
 			select {
@@ -90,6 +94,11 @@ func makePayload(payload interface{}) string {
 	}
 }
 
+func getPayload(value string) interface{} {
+
+}
+
+// Converts Sailor into follower state (Normally if msg.Term > s.currentTerm)
 func (s *Sailor) becomeFollower(term int) {
     s.currentTerm = term
     s.state = follower

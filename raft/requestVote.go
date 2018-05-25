@@ -1,6 +1,6 @@
 package raft
 
-func (s *Sailor) handle_timeout() {
+func (s *Sailor) handle_timeout() error {
 	// ONLY BECOME CANDIDATE IF ALLOWED
 	s.state = candidate
 	s.currentTerm += 1
@@ -20,10 +20,10 @@ func (s *Sailor) handle_timeout() {
 	zmqMsg.Type = "requestVote"
 	zmqMsg.Source = newmsg.client.NodeName
 	zmqMsg.Value = makePayload(newmsg)
-	s.client.Broadcast(zmqMsg)
+	return s.client.Broadcast(zmqMsg)
 }
 
-
+//TODO: NEED ZMQ message DECODER to get proper dst
 func (s *Sailor) handle_requestVote(msg *requestVote) {
     payload := make(reply)
     if msg.Term > s.currentTerm {
