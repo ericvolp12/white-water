@@ -18,6 +18,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			case s.state == follower:
 				select {
 				case msg := <-gets:
+					//TODO(JM): Decide where to put leader-notify
 					val, err := handleGetRequest(msg.key, s, state)
 					rep := makeReply(s, msg, "getReply")
 					rep.Key = msg.key
@@ -27,8 +28,8 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					if err != nil {
 						//handle error
 					}
-					//Gets handle - Joseph
 				case msg := <-sets:
+
 					//Sets handle - Joseph
 				case msg := <-appendEntry:
 					//Append handle - Joseph
@@ -45,7 +46,15 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			case s.state == leader:
 				select {
 				case msg := <-gets:
-					//Gets handle - Joseph
+					val, err := handleGetRequest(msg.key, s, state)
+					rep := makeReply(s, msg, "getReply")
+					rep.Key = msg.key
+					rep.Value = val
+					rep.Error = err
+					err := s.client.sendMessage(rep)
+					if err != nil {
+						//handle error
+					}
 				case msg := <-sets:
 					//Sets handle - Joseph
 				case msg := <-appendEntry:
