@@ -1,9 +1,8 @@
 package raft
 
-import (
-	"sync"
-	"time"
-)
+import "time"
+
+type GetReply string
 
 type operation int
 
@@ -15,7 +14,7 @@ const (
 
 type entry struct {
 	op    operation
-    term  uint
+	term  uint
 	key   string
 	value string
 }
@@ -40,12 +39,12 @@ const (
 
 type Sailor struct {
 	// Contains filtered or unexported fields
-    client          *messages.Client
+	client          *messages.Client
 	state           position
 	log             []entry
 	currentTerm     uint
 	votedFor        int
-    numVotes        int
+	numVotes        int
 	volatile        *volatileState
 	leader          *leaderState
 	lastMessageTime time.Time
@@ -68,7 +67,7 @@ type requestVote struct { //type="requestVote"
 }
 
 type reply struct {
-    Term uint
-    VoteGranted bool
-    Success bool
+	Term        uint
+	VoteGranted bool
+	Success     bool
 }
