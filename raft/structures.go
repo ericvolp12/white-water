@@ -29,8 +29,17 @@ type volatileState struct {
 	lastApplied uint
 }
 
+type position int
+
+const (
+    follower position = iota
+    candidate
+    leader
+)
+
 type Sailor struct {
 	// Contains filtered or unexported fields
+    state  position
 	log             []entry
 	currentTerm     uint
 	votedFor        int

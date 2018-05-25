@@ -24,6 +24,4 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry *chan messages.
 
 // ON CONVERSION TO CANDIDATE:
 func (s *Sailor) handle_timeout(msg messages.Message) {
-    s.electionLock.Lock();
-    s.electionLock.Unlock();
 }
