@@ -51,7 +51,7 @@ type Sailor struct {
 	lastMessageTime time.Time
 }
 
-type appendMessage struct {
+type appendMessage struct { //type="appendEntries"
 	term         uint
 	leaderId     int
 	prevLogIndex uint
@@ -60,7 +60,7 @@ type appendMessage struct {
 	leaderCommit uint
 }
 
-type requestVote struct {
+type requestVote struct { //type="requestVote"
 	term         uint
 	candidateId  uint
 	lastLogIndex uint
