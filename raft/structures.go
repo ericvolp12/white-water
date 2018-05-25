@@ -48,3 +48,11 @@ type appendMessage struct {
 	entries      []entry
 	leaderCommit uint
 }
+
+type requestVote struct {
+    term    uint
+    candidateId uint
+    lastLogIndex    uint
+    lastLogTerm     uint
+    votGranted   bool
+}

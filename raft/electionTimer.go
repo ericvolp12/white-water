@@ -16,7 +16,7 @@ func (s *Sailor) timer(TIMEOUT_SIGNAL *chan bool) {
         last = s.lastMessageTime
         if(time.Since(s.lastMessageTime) > timeout) {
             fmt.Printf("TIMEOUT")
-            TIMEOUT_SIGNAL <- true // Sending TIMEOUT signal to raft thread
+            *TIMEOUT_SIGNAL <- true // Sending TIMEOUT signal to raft thread
         }
     }
 }
