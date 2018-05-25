@@ -80,6 +80,8 @@ func Initialize() {
 	state.Map = make(map[string]ValueStamp)
 }
 
+// Apply transaction takes a transaction struct and
+// applies the described effect to the state machine
 func (s *State) ApplyTransaction(t Transaction) (string, error) {
 	switch t.TType {
 	case GetOp:
@@ -91,6 +93,7 @@ func (s *State) ApplyTransaction(t Transaction) (string, error) {
 	}
 }
 
+// Generate transaction creates a transaction struct
 func GenerateTransaction(opType Operation, key string, value string) Transaction {
 	t := Transaction{opType, key, value}
 	return t
