@@ -1,11 +1,17 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
-	"sync"
 	"time"
+)
 
-	messages "github.com/ericvolp12/white-water/messages"
+type Operation int
+
+const (
+	GetOp Operation = iota
+	SetOp
+	DeleteOp
 )
 
 // ValueStamp is a struct that holds a value paired with a timestamp
@@ -16,14 +22,13 @@ type ValueStamp struct {
 
 // Transaction stores a transaction relating the type of transaction made, the key, and the value stamp
 type Transaction struct {
-	TType string     // Type of transaction, either a get or a set
-	Key   string     // Key we are getting ot setting
-	Stamp ValueStamp // A Value and Timestamp pairing
+	TType Operation // Type of transaction, either a get or a set
+	Key   string    // Key we are getting ot setting
+	Value string    // A Value, if needed for the transaction
 }
 
 // State contains the transaction log and the state map for indexing into
 type State struct {
-	Log []Transaction         // The transaction log, ordered by time
 	Map map[string]ValueStamp // The map relating keys to values
 }
 
@@ -69,93 +74,27 @@ func (s *State) Set(key string, value string) error {
 }
 
 // Initialize starts up the message listeners for the interface
-func Initialize(client *messages.Client) {
+func Initialize() {
 	state := State{}
 
 	state.Map = make(map[string]ValueStamp)
-
-	wg := sync.WaitGroup{}
-
-	go state.getHandler(client)
-	wg.Add(1)
-
-	go state.setHandler(client)
-	wg.Add(1)
-
-	wg.Wait()
 }
 
-// getHandler handles get messages...
-func (s *State) getHandler(client *messages.Client) {
-	getIncoming := make(chan messages.Message, 500)
-
-	client.Subscribe("get", &getIncoming)
-
-	for msg := range getIncoming {
-		fmt.Printf("Get Handler Firing...\n")
-		// Attempt to get value
-		val, err := s.Get(msg.Key)
-
-		// If there is no value stored for key
-		if err != nil {
-			// Send an error message to the broker
-			err = client.SendToBroker(messages.Message{
-				Type:   "getResponse",
-				Source: client.NodeName,
-				ID:     msg.ID,
-				Error:  err.Error(),
-			})
-			if err != nil {
-				break
-			}
-		}
-		// If we found a value, send a response to the broker
-		err = client.SendToBroker(messages.Message{
-			Type:   "getResponse",
-			Source: client.NodeName,
-			ID:     msg.ID,
-			Key:    msg.Key,
-			Value:  val,
-		})
-		if err != nil {
-			break
-		}
+// Apply transaction takes a transaction struct and
+// applies the described effect to the state machine
+func (s *State) ApplyTransaction(t Transaction) (string, error) {
+	switch t.TType {
+	case GetOp:
+		return s.getLocal(t.Key)
+	case SetOp:
+		return "", s.setLocal(t.Key, t.Value)
+	default:
+		return "", errors.New("Invalid Transaction!")
 	}
 }
 
-// setHandler handles set messages...
-func (s *State) setHandler(client *messages.Client) {
-	setIncoming := make(chan messages.Message, 500)
-
-	client.Subscribe("set", &setIncoming)
-
-	for msg := range setIncoming {
-		fmt.Printf("Set Handler Firing...\n")
-		// Attempt to set value
-		err := s.Set(msg.Key, msg.Value)
-
-		// If something went horribly wrong
-		if err != nil {
-			// Send an error message to the broker
-			err = client.SendToBroker(messages.Message{
-				Type:  "setResponse",
-				ID:    msg.ID,
-				Error: err.Error(),
-			})
-			if err != nil {
-				break
-			}
-		}
-		// If we set a value, send a response to the broker
-		err = client.SendToBroker(messages.Message{
-			Type:   "setResponse",
-			Source: client.NodeName,
-			ID:     msg.ID,
-			Key:    msg.Key,
-			Value:  msg.Value,
-		})
-		if err != nil {
-			break
-		}
-	}
+// Generate transaction creates a transaction struct
+func GenerateTransaction(opType Operation, key string, value string) Transaction {
+	t := Transaction{opType, key, value}
+	return t
 }
