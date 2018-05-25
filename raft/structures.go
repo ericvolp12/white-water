@@ -15,6 +15,7 @@ const (
 
 type entry struct {
 	op    operation
+    term  uint
 	key   string
 	value string
 }
@@ -39,14 +40,15 @@ const (
 
 type Sailor struct {
 	// Contains filtered or unexported fields
+    client          *messages.Client
 	state           position
 	log             []entry
 	currentTerm     uint
 	votedFor        int
+    numVotes        int
 	volatile        *volatileState
 	leader          *leaderState
 	lastMessageTime time.Time
-	electionLock    sync.RWMutex
 }
 
 type appendMessage struct {
@@ -63,5 +65,10 @@ type requestVote struct {
 	candidateId  uint
 	lastLogIndex uint
 	lastLogTerm  uint
-	votGranted   bool
+}
+
+type reply struct {
+    term uint
+    voteGranted bool
+    success bool
 }

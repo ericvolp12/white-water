@@ -7,10 +7,10 @@ import(
 )
 
 func (s *Sailor) timer(TIMEOUT_SIGNAL *chan bool) {
-    timeout := time.Duration((rand.Intn(150) + 150)) * time.Millisecond
+    timeout := time.Duration((rand.Intn(150) + 150)) * time.Millisecond //Random timeout in MS
     last := s.lastMessageTime
     for {
-        if (last != s.lastMessageTime) {
+        if (last != s.lastMessageTime) { // triggers timer restart
             timeout = time.Duration((rand.Intn(150) + 150)) * time.Millisecond
         }
         last = s.lastMessageTime
