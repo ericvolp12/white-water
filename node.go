@@ -51,7 +51,7 @@ func main() {
 	go client.ReceiveMessages()
 	wg.Add(1)
 
-	go storage.Initialize(&client)
+	go storage.Initialize()
 	wg.Add(1)
 
 	wg.Wait()
