@@ -1,12 +1,17 @@
 package raft
 
-import "time"
+import (
+	"time"
+
+	messages "github.com/ericvolp12/white-water/messages"
+	storage "github.com/ericvolp12/white-water/storage"
+)
 
 type GetReply string
 
 type entry struct {
 	term  uint
-	trans Transaction
+	trans storage.Transaction
 }
 
 type leaderState struct {
@@ -33,7 +38,7 @@ type Sailor struct {
 	state           position
 	log             []entry
 	currentTerm     uint
-	votedFor        int
+	votedFor        string
 	numVotes        int
 	volatile        *volatileState
 	leader          *leaderState
@@ -49,6 +54,10 @@ type appendMessage struct { //type="appendEntries"
 	LeaderCommit uint
 }
 
+type appendReply struct { //type="appendReply"
+
+}
+
 type requestVote struct { //type="requestVote"
 	Term         uint
 	CandidateId  string
@@ -60,4 +69,13 @@ type reply struct {
 	Term        uint
 	VoteGranted bool
 	Success     bool
+}
+
+func InitializeSailor(c *messages.Client) *Sailor {
+	s := Sailor{}
+	s.state = follower
+	s.client = c
+	s.currentTerm = 1
+	s.volatile = &volatileState{}
+	return &s
 }

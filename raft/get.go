@@ -1,6 +1,8 @@
 package raft
 
-func handleGetRequest(string key, s *Sailor, st *storage.State) (string, error) {
-	gt := GenerateTransaction(storage.GetOp, key, "")
+import storage "github.com/ericvolp12/white-water/storage"
+
+func handleGetRequest(key string, s *Sailor, st *storage.State) (string, error) {
+	gt := storage.GenerateTransaction(storage.GetOp, key, "")
 	return st.ApplyTransaction(gt)
 }

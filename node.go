@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	messages "github.com/ericvolp12/white-water/messages"
+	raft "github.com/ericvolp12/white-water/raft"
 	storage "github.com/ericvolp12/white-water/storage"
 )
 
@@ -41,8 +42,10 @@ func main() {
 
 	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
-	_ = storage.InitializeState()
-	_, _, _, _, _ = initializeChannels(&client)
+	s := raft.InitializeSailor(&client)
+
+	state := storage.InitializeState()
+	gets, sets, requestVote, appendEntry, timeouts := initializeChannels(&client)
 
 	wg := sync.WaitGroup{}
 
@@ -51,6 +54,12 @@ func main() {
 
 	go client.ReceiveMessages()
 	wg.Add(1)
+
+	go s.MsgHandler(gets, sets, requestVote, appendEntry, timeouts, &state)
+	wg.Add(1)
+
+	//go raft.timer(timeouts)
+	//wg.Add(1)
 
 	wg.Wait()
 
