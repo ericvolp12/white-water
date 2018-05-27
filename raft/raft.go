@@ -33,7 +33,16 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 				case _ = <-sets:
 
 					//Sets handle - Joseph
-				case _ = <-appendEntry:
+				case msg := <-appendEntry:
+					//TODO(JM): Actually unpack message, waiting on function from Max
+					val, err := handleAppendEntries(s, state, &appendMessage{})
+					rep := makeReply(s, &msg, "appendEntriesReply")
+					rep.Value = makePayload(val)
+					rep.Error = err.Error()
+					err = s.client.SendToPeers(rep, rep.Destination)
+					if err != nil {
+						//handle error
+					}
 					//Append handle - Joseph
 				case _ = <-requestVote:
 					//Vote handle - Max
