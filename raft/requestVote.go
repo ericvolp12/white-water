@@ -1,5 +1,12 @@
 package raft
 
+import (
+	"fmt"
+	"time"
+
+	messages "github.com/ericvolp12/white-water/messages"
+)
+
 func (s *Sailor) handle_timeout() error {
 	// ONLY BECOME CANDIDATE IF ALLOWED
 	s.state = candidate
@@ -9,27 +16,35 @@ func (s *Sailor) handle_timeout() error {
 	s.lastMessageTime = time.Now() // Triggers timer thread to restart timer
 
 	// Fill RequestVotes RPC struct
-	newmsg := make(requestVote)
+	newmsg := requestVote{}
 	newmsg.Term = s.currentTerm
-	newmsg.CandidateId = s.client.NodeName               // Current Node ID
-	newmsg.LastLogIndex = len(s.log) - 1                 // Index of last entry in log
-	newmsg.LastLogTerm = s.log[newmsg.LastLogIndex].term // The term of that entry index
-
+	newmsg.CandidateId = s.client.NodeName // Current Node ID
+	last := uint(len(s.log))
+	newmsg.LastLogIndex = last // Index of last entry in log
+	if last == 0 {
+		newmsg.LastLogTerm = 0
+	} else {
+		newmsg.LastLogTerm = s.log[last-1].term // The term of that entry index
+	}
 	// SEND newmsg REQUESTVOTE RPC BROADCAST
 	// TODO (MD) this can be makeReply w/ nil
 	zmqMsg := messages.Message{}
 	zmqMsg.Type = "requestVote"
-	zmqMsg.Source = newmsg.client.NodeName
+	zmqMsg.Source = s.client.NodeName
 	zmqMsg.Value = makePayload(newmsg)
 	return s.client.Broadcast(zmqMsg)
 }
 
 //TODO: NEED ZMQ message DECODER to get proper dst
 func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
-	reqVoteRPC := getPayload(original_msg).(requestVote) //Cast payload to requestVote
-	reply_payload := make(reply)
+	reqVoteRPC := requestVote{}
+	err := getPayload(original_msg.Value, &reqVoteRPC) //Cast payload to requestVote
+	if err != nil {
+		fmt.Printf("getPayload error: %v\n", err)
+	}
+	reply_payload := reply{}
 	if reqVoteRPC.Term > s.currentTerm {
-		s.becomeFollower(msg.Term)
+		s.becomeFollower(reqVoteRPC.Term)
 	}
 
 	reply_payload.Term = s.currentTerm
@@ -37,8 +52,8 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 		reply_payload.VoteGranted = false
 	}
 
-	if s.votedFor == nil || s.votedFor == reqVoteRPC.CandidateId {
-		recent := len(s.log) - 1
+	if s.votedFor == "" || s.votedFor == reqVoteRPC.CandidateId {
+		recent := uint(len(s.log))
 		if reqVoteRPC.LastLogTerm > s.log[recent].term || reqVoteRPC.LastLogIndex >= recent {
 			reply_payload.VoteGranted = true
 			s.votedFor = reqVoteRPC.CandidateId
@@ -48,15 +63,19 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	} else {
 		reply_payload.VoteGranted = false
 	}
-	zmq_msg := makeReply(s, msg, "voteReply")
+	zmq_msg := makeReply(s, &original_msg, "voteReply")
 	zmq_msg.Value = makePayload(reply_payload)
 	return s.client.SendToPeer(zmq_msg, original_msg.Source)
 }
 
 func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
-	reply := getPayload(original_msg)
+	reply := reply{}
+	err := getPayload(original_msg.Value, &reply)
+	if err != nil {
+		fmt.Printf("getPayload Error: %v\n", err)
+	}
 	if reply.Term > s.currentTerm {
-		s.BecomeFollower()
+		s.becomeFollower(reply.Term)
 		return nil
 	}
 	if reply.Term < s.currentTerm { //Ignore old votes
@@ -68,17 +87,17 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	}
 	if s.numVotes > (len(s.client.Peers)+1)/2 { // become leader, send empty heartbeat
 		s.state = leader
-		newmsg := make(appendMessage)
+		newmsg := appendMessage{}
 		newmsg.Term = s.currentTerm
 		newmsg.LeaderId = s.client.NodeName
 
-		recent = len(s.log) - 1
-		if recent == -1 {
-			newmsg.PrevLogTerm = -1
+		last := uint(len(s.log))
+		if last == 0 {
+			newmsg.PrevLogTerm = 0 //TODO FIX UINT INT STUFF
 		} else {
-			newmsg.PrevLogTerm = s.log[recent].term
+			newmsg.PrevLogTerm = s.log[last-1].term
 		}
-		newmsg.PrevLogIndex = recent
+		newmsg.PrevLogIndex = last
 		newmsg.Entries = nil
 		newmsg.LeaderCommit = s.volatile.commitIndex
 

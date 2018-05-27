@@ -14,7 +14,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 		select {
 		case _ = <-timeouts:
 			//timeouts message handle
-			err := handle_timeout()
+			err := s.handle_timeout()
 			if err != nil {
 				// handle error?
 				fmt.Printf("handle_timeout error\n")
@@ -43,7 +43,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 				case msg := <-requestVote:
 					// TODO (MD) check when s.lastMessageTime should be set when voting
 					if msg.Type == "requestVote" {
-						err := handle_requestVote(msg)
+						err := s.handle_requestVote(msg)
 						if err != nil {
 							fmt.Printf("Follower handle_requestVote Error: %v\n", err)
 						}
@@ -56,12 +56,12 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					//Append handle - Joseph
 				case msg := <-requestVote:
 					if msg.Type == "requestVote" {
-						err := handle_requestVote(msg)
+						err := s.handle_requestVote(msg)
 						if err != nil {
 							fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
 						}
 					} else { // Type == "voteReply"
-						err := handle_voteReply(msg)
+						err := s.handle_voteReply(msg)
 						if err != nil {
 							fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 						}
@@ -75,8 +75,8 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					rep := makeReply(s, &msg, "getReply")
 					rep.Key = msg.Key
 					rep.Value = val
-					rep.Error = err
-					err = s.client.sendMessage(rep)
+					rep.Error = err.Error()
+					err = s.client.SendToBroker(rep)
 					if err != nil {
 						//handle error
 					}
@@ -84,10 +84,10 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					//Sets handle - Joseph
 				case _ = <-appendEntry:
 					//AppendReply handle - Joseph
-				case _ = <-requestVote:
+				case msg := <-requestVote:
 					//Vote/VoteReply handle - Max
 					if msg.Type == "requestVote" {
-						err := handle_requestVote(msg)
+						err := s.handle_requestVote(msg)
 						if err != nil {
 							fmt.Printf("Leader handle_requestVote Error:%v\n", err)
 						}
@@ -122,25 +122,26 @@ func makePayload(payload interface{}) string {
 	return "" //TODO: Make it return an error
 }
 
-func getPayload(value string) interface{} {
-	temp, err := base64.StdDecoding.DecodeString(value)
+func getPayload(value string, payload interface{}) error {
+	temp, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
 		fmt.Printf("Decoding String Error:%v\n", err)
-		return nil
+		return err
 	}
-	payload, err2 := json.Unmarshal(temp)
+
+	err2 := json.Unmarshal(temp, payload)
 	if err2 != nil {
 		fmt.Printf("Unmarshaling error: %v\n", err2)
-		return nil
+		return err2
 	}
-	return payload
+	return nil
 }
 
 // Converts Sailor into follower state (Normally if msg.Term > s.currentTerm)
-func (s *Sailor) becomeFollower(term int) {
+func (s *Sailor) becomeFollower(term uint) {
 	s.currentTerm = term
 	s.state = follower
-	s.votedFor = nil
+	s.votedFor = ""
 	s.numVotes = 0
 	s.leader = nil
 }
