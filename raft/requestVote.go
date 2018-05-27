@@ -34,7 +34,6 @@ func (s *Sailor) handle_timeout() error {
 	return s.client.Broadcast(zmqMsg)
 }
 
-//TODO: NEED ZMQ message DECODER to get proper dst
 func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	reqVoteRPC := requestVote{}
 	err := getPayload(original_msg.Value, &reqVoteRPC) //Cast payload to requestVote
@@ -92,7 +91,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 
 		last := uint(len(s.log))
 		if last == 0 {
-			newmsg.PrevLogTerm = 0 //TODO FIX UINT INT STUFF
+			newmsg.PrevLogTerm = 0
 		} else {
 			newmsg.PrevLogTerm = s.log[last-1].term
 		}

@@ -16,8 +16,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			//timeouts message handle
 			err := s.handle_timeout()
 			if err != nil {
-				// handle error?
-				fmt.Printf("handle_timeout error\n")
+				fmt.Printf("handle_timeout error: %v\n", err)
 			}
 			//Max
 		default:
@@ -42,7 +41,6 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					//Append handle - Joseph
 				case msg := <-requestVote:
 					s.resetTimer = true //restart timer
-					// TODO (MD) check when s.lastMessageTime should be set when voting
 					if msg.Type == "requestVote" {
 						err := s.handle_requestVote(msg)
 						if err != nil {
@@ -93,8 +91,8 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 							fmt.Printf("Leader handle_requestVote Error:%v\n", err)
 						}
 					}
+					//TODO Should votereplies w/ larger Term be considered?
 					// Ignore vote replies if in leader state
-
 					//Propose-value?
 				}
 			}
