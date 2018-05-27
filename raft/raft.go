@@ -41,6 +41,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 				case _ = <-appendEntry:
 					//Append handle - Joseph
 				case msg := <-requestVote:
+					s.resetTimer = true //restart timer
 					// TODO (MD) check when s.lastMessageTime should be set when voting
 					if msg.Type == "requestVote" {
 						err := s.handle_requestVote(msg)
@@ -85,7 +86,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 				case _ = <-appendEntry:
 					//AppendReply handle - Joseph
 				case msg := <-requestVote:
-					//Vote/VoteReply handle - Max
+					//Vote
 					if msg.Type == "requestVote" {
 						err := s.handle_requestVote(msg)
 						if err != nil {
@@ -144,4 +145,5 @@ func (s *Sailor) becomeFollower(term uint) {
 	s.votedFor = ""
 	s.numVotes = 0
 	s.leader = nil
+	s.resetTimer = true //always restart timer on failover
 }
