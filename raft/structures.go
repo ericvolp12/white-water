@@ -37,6 +37,7 @@ type Sailor struct {
 	client          *messages.Client
 	state           position
 	log             []entry
+	lastCommitIndex uint
 	currentTerm     uint
 	votedFor        string
 	numVotes        int

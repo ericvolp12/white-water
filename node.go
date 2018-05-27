@@ -74,6 +74,7 @@ func initializeChannels(client *messages.Client) (gets, sets, requestVote, appen
 	client.Subscribe("get", &gets) // CHECK TYPE
 	client.Subscribe("set", &sets) // CHECK TYPE
 	client.Subscribe("requestVote", &requestVote)
+	client.Subscribe("voteReply", &requestVote)
 	client.Subscribe("appendEntries", &appendEntry)
 	return
 }
