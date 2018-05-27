@@ -11,12 +11,11 @@ func new_time() time.Duration {
 }
 
 func (s *Sailor) timer(TIMEOUT_SIGNAL chan bool) {
-	last := s.lastMessageTime
 	timer := time.NewTimer(new_time())
 	for {
-		if last != s.lastMessageTime {
-			last = s.lastMessageTime
+		if s.resetTimer == true {
 			timer.Reset(new_time())
+			s.resetTimer = false
 		}
 		<-timer.C
 		TIMEOUT_SIGNAL <- true

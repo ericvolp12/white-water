@@ -2,7 +2,6 @@ package raft
 
 import (
 	"fmt"
-	"time"
 
 	messages "github.com/ericvolp12/white-water/messages"
 )
@@ -12,8 +11,8 @@ func (s *Sailor) handle_timeout() error {
 	s.state = candidate
 	s.currentTerm += 1
 	s.votedFor = s.client.NodeName
-	s.numVotes = 1                 // Votes for itself
-	s.lastMessageTime = time.Now() // Triggers timer thread to restart timer
+	s.numVotes = 1      // Votes for itself
+	s.resetTimer = true // Triggers timer thread to restart timer
 
 	// Fill RequestVotes RPC struct
 	newmsg := requestVote{}

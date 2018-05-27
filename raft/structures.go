@@ -1,8 +1,6 @@
 package raft
 
 import (
-	"time"
-
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
 )
@@ -43,7 +41,7 @@ type Sailor struct {
 	numVotes        int
 	volatile        *volatileState
 	leader          *leaderState
-	lastMessageTime time.Time
+	resetTimer      bool
 }
 
 type appendMessage struct { //type="appendEntries"
