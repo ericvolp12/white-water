@@ -49,12 +49,12 @@ func sendAppendEntries(s *Sailor, state *storage.State, peer string) error {
 	ap.ID = 0 //TODO(JM): Figure out what this should be?
 	ap.Source = s.client.NodeName
 	ap.Value = makePayload(am)
-	s.client.SendToPeer(ap, peer)
-	return nil
+	return s.client.SendToPeer(ap, peer)
 }
 
 func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source string) error {
 	//TODO(JM): Check to update our term
+	//TODO(MAX): Commit code
 	if ar.Success {
 		s.leader.nextIndex[source] = ar.MatchIndex + 1
 		s.leader.matchIndex[source] = ar.MatchIndex
