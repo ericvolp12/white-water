@@ -55,7 +55,8 @@ type appendMessage struct { //type="appendEntries"
 }
 
 type appendReply struct { //type="appendReply"
-
+	Term    uint
+	Success bool
 }
 
 type requestVote struct { //type="requestVote"
