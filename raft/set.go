@@ -7,7 +7,7 @@ import (
 
 func (s *Sailor) handle_set(msg messages.Message) {
 
-	s.leader.queue = append(s.leader.queue, commit_queue{index: 0, commit_count: 0})
+	s.leader.queue = append(s.leader.queue, commit_queue{index: 0, commit_count: 0}) //TODO GET INDEX
 }
 
 func delete(q []commit_queue, i uint) []commit_queue {
@@ -33,7 +33,8 @@ func (s *Sailor) handle_commit(MatchIndex uint) int {
 	}
 	majority := uint((len(s.client.Peers) + 1) / 2)
 	if s.leader.queue[i].commit_count > majority {
-		// Send to broker
+		s.leader.queue = delete(s.leader.queue, uint(i))
+		// TODO Send to broker
 	}
 	return i
 }
