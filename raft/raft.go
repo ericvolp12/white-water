@@ -55,7 +55,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						if err != nil {
 							fmt.Printf("Follower handle_requestVote Error: %v\n", err)
 						}
-					}
+					} // Don't respond to voteReply messages if follower
 					//Vote handle - Max
 				}
 			case candidate:
@@ -130,6 +130,7 @@ func makePayload(payload interface{}) string {
 	return "" //TODO: Make it return an error
 }
 
+// Decodes Zmq message.Value payload to whatever struct is passed into the func
 func getPayload(value string, payload interface{}) error {
 	temp, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
