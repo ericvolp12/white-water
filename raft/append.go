@@ -66,12 +66,17 @@ func sendHeartbeats(s *Sailor, state *storage.State) error {
 }
 
 func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source string) error {
-	//TODO(JM): Check to update our term
+	//TODO(JM): Check for moving commit index?
+
 	//TODO(MAX): Commit code
 	if ar.Success {
 		s.leader.nextIndex[source] = ar.MatchIndex + 1
 		s.leader.matchIndex[source] = ar.MatchIndex
 	} else {
+		if ar.Term != s.currentTerm {
+			s.becomeFollower(ar.Term)
+			return nil
+		}
 		s.leader.nextIndex[source] -= 1
 		return sendAppendEntries(s, state, source)
 	}
