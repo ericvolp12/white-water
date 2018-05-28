@@ -6,7 +6,9 @@ import (
 )
 
 func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (appendReply, error) {
-	//TODO(JM): Handle check if new leader
+	if (s.state != follower && am.Term == s.currentTerm) || am.Term > s.currentTerm {
+		s.becomeFollower(am.Term)
+	}
 	//Converted to 1 indexed
 	rep := appendReply{Term: s.currentTerm, Success: false}
 	if s.currentTerm > am.Term {

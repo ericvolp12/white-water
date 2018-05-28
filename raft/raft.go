@@ -38,16 +38,18 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 
 					//Sets handle - Joseph
 				case msg := <-appendEntry:
-					//TODO(JM): Actually unpack message, waiting on function from Max
-					val, err := handleAppendEntries(s, state, &appendMessage{})
-					rep := makeReply(s, &msg, "appendReply")
-					rep.Value = makePayload(val)
-					rep.Error = err.Error()
-					err = s.client.SendToPeers(rep, rep.Destination)
-					if err != nil {
-						//handle error
+					if msg.Type == "appendEntries" {
+						am := appendMessage{}
+						getPayload(msg.Value, &am)
+						val, err := handleAppendEntries(s, state, &am)
+						rep := makeReply(s, &msg, "appendReply")
+						rep.Value = makePayload(val)
+						rep.Error = err.Error()
+						err = s.client.SendToPeers(rep, rep.Destination)
+						if err != nil {
+							fmt.Printf("follower, append entries: %s", err)
+						}
 					}
-					//Append handle - Joseph
 				case msg := <-requestVote:
 					s.resetTimer = true //restart timer
 					if msg.Type == "requestVote" {
@@ -56,12 +58,25 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 							fmt.Printf("Follower handle_requestVote Error: %v\n", err)
 						}
 					}
-					//Vote handle - Max
+				//Vote handle - Max
+				default:
 				}
+
 			case candidate:
 				select {
-				case _ = <-appendEntry:
-					//Append handle - Joseph
+				case msg := <-appendEntry:
+					if msg.Type == "appendEntries" {
+						am := appendMessage{}
+						getPayload(msg.Value, &am)
+						val, err := handleAppendEntries(s, state, &am)
+						rep := makeReply(s, &msg, "appendReply")
+						rep.Value = makePayload(val)
+						rep.Error = err.Error()
+						err = s.client.SendToPeers(rep, rep.Destination)
+						if err != nil {
+							fmt.Printf("candidate, append entries: %s", err)
+						}
+					}
 				case msg := <-requestVote:
 					if msg.Type == "requestVote" {
 						err := s.handle_requestVote(msg)
@@ -90,7 +105,29 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					}
 				case _ = <-sets:
 					//Sets handle - Joseph
-				case _ = <-appendEntry:
+				case msg := <-appendEntry:
+					if msg.Type == "appendEntries" {
+						am := appendMessage{}
+						getPayload(msg.Value, &am)
+						val, err := handleAppendEntries(s, state, &am)
+						if err != nil {
+							fmt.Printf("leader, append entries handle: %s", err)
+						}
+						rep := makeReply(s, &msg, "appendReply")
+						rep.Value = makePayload(val)
+						rep.Error = err.Error()
+						err = s.client.SendToPeers(rep, rep.Destination)
+						if err != nil {
+							fmt.Printf("leader, append entries: %s", err)
+						}
+					} else if msg.Type == "appendReply" {
+						ar := appendReply{}
+						getPayload(msg.Value, &ar)
+						err := handleAppendReply(s, state, &ar, msg.Source)
+						if err != nil {
+							fmt.Printf("leader, append reply handle: %s", err)
+						}
+					}
 					//AppendReply handle - Joseph
 				case msg := <-requestVote:
 					//Vote
@@ -102,7 +139,6 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					}
 					//TODO Should votereplies w/ larger Term be considered?
 					// Ignore vote replies if in leader state
-					//Propose-value?
 				}
 			}
 		}
