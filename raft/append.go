@@ -7,42 +7,43 @@ import (
 
 func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (appendReply, error) {
 	//TODO(JM): Handle check if new leader
-
+	//Converted to 1 indexed
 	rep := appendReply{Term: s.currentTerm, Success: false}
 	if s.currentTerm > am.Term {
 		return rep, nil
 	}
 
-	if len(s.log) <= int(am.PrevLogIndex) || s.log[am.PrevLogIndex].term != am.PrevLogTerm {
+	if len(s.log) <= int(am.PrevLogIndex-1) || s.log[am.PrevLogIndex-1].term != am.PrevLogTerm {
 		return rep, nil
 	}
 
 	rep.Success = true
 
-	s.log = append(s.log[:am.PrevLogIndex+1], am.Entries...)
+	s.log = append(s.log[:am.PrevLogIndex], am.Entries...)
 	if am.LeaderCommit > s.volatile.commitIndex {
-		if int(am.LeaderCommit) <= len(s.log)-1 {
+		if int(am.LeaderCommit) <= len(s.log) {
 			s.volatile.commitIndex = am.LeaderCommit
 		} else {
-			s.volatile.commitIndex = uint(len(s.log) - 1)
+			s.volatile.commitIndex = uint(len(s.log))
 		}
 		for s.volatile.lastApplied < s.volatile.commitIndex {
 			s.volatile.lastApplied += 1
-			state.ApplyTransaction(s.log[s.volatile.lastApplied].trans)
+			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].trans)
 		}
 
 	}
-	rep.MatchIndex = uint(len(s.log) - 1)
+	rep.MatchIndex = uint(len(s.log))
 	return rep, nil
 }
 
 func sendAppendEntries(s *Sailor, state *storage.State, peer string) error {
+	//Converted to 1 indexed
 	am := appendMessage{}
 	am.Term = s.currentTerm
 	am.LeaderId = s.client.NodeName
 	am.PrevLogIndex = s.leader.nextIndex[peer] - 1
-	am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-1].term
-	am.Entries = s.log[s.leader.nextIndex[peer]:]
+	am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
+	am.Entries = s.log[s.leader.nextIndex[peer]-1:]
 	am.LeaderCommit = s.volatile.commitIndex
 	ap := messages.Message{}
 	ap.Type = "appendEntries"
@@ -50,6 +51,16 @@ func sendAppendEntries(s *Sailor, state *storage.State, peer string) error {
 	ap.Source = s.client.NodeName
 	ap.Value = makePayload(am)
 	return s.client.SendToPeer(ap, peer)
+}
+
+func sendHeartbeats(s *Sailor, state *storage.State) error {
+	for _, peer := range s.client.Peers {
+		err := sendAppendEntries(s, state, peer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source string) error {
