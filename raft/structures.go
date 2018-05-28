@@ -12,9 +12,15 @@ type entry struct {
 	trans storage.Transaction
 }
 
+type commit_queue struct {
+	index        uint
+	commit_count uint
+}
+
 type leaderState struct {
 	nextIndex  map[string]uint
 	matchIndex map[string]uint
+	queue      []commit_queue
 }
 
 type volatileState struct {
@@ -66,7 +72,7 @@ type requestVote struct { //type="requestVote"
 	LastLogTerm  uint
 }
 
-type reply struct {
+type reply struct { //type="voteReply"
 	Term        uint
 	VoteGranted bool
 	Success     bool
