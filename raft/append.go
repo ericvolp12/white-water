@@ -72,7 +72,7 @@ func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source 
 	if ar.Success {
 		s.leader.nextIndex[source] = ar.MatchIndex + 1
 		s.leader.matchIndex[source] = ar.MatchIndex
-		s.handle_commit(ar.MatchIndex) // TODO MAKE SUER THIS WORKS
+		//s.handle_commit(ar.MatchIndex) // TODO MAKE SUER THIS WORKS
 	} else {
 		if ar.Term != s.currentTerm {
 			s.becomeFollower(ar.Term)

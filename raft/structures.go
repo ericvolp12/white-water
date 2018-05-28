@@ -10,17 +10,12 @@ type GetReply string
 type entry struct {
 	term  uint
 	trans storage.Transaction
-}
-
-type commit_queue struct {
-	index        uint
-	commit_count uint
+	votes uint
 }
 
 type leaderState struct {
 	nextIndex  map[string]uint
 	matchIndex map[string]uint
-	queue      []commit_queue
 }
 
 type volatileState struct {

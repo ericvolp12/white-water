@@ -1,15 +1,17 @@
 package raft
 
 import (
-	"fmt"
 	messages "github.com/ericvolp12/white-water/messages"
+	storage "github.com/ericvolp12/white-water/storage"
 )
 
-func (s *Sailor) handle_set(msg messages.Message) {
-
-	s.leader.queue = append(s.leader.queue, commit_queue{index: 0, commit_count: 0}) //TODO GET INDEX
+func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
+	trans := storage.GenerateTransaction(storage.SetOp, msg.Key, msg.Value)
+	newEntry := entry{term: s.currentTerm, trans: trans, votes: 1}
+	s.log = append(s.log, newEntry)
 }
 
+/*
 // Delete an item in the leader's queue of pending commits
 func delete(q []commit_queue, i uint) []commit_queue {
 	q = append(q[:i], q[i+1:]...)
@@ -30,15 +32,17 @@ func (s *Sailor) incrementCommit(MatchIndex uint) int {
 // Upon appendReply w/ Sucess, increments the appropriate pending commit count
 // and sends a message to the broker if a majority have now commited
 func (s *Sailor) handle_commit(MatchIndex uint) int {
-	i := s.incrementCommit(MatchIndex)
-	if i == -1 {
-		fmt.Printf("ERROR: Commit reply had non-existant MatchIndex\n")
-		return i
-	}
-	majority := uint((len(s.client.Peers) + 1) / 2)
-	if s.leader.queue[i].commit_count > majority {
-		s.leader.queue = delete(s.leader.queue, uint(i))
-		// TODO Send to broker
-	}
-	return i
+	/*
+		i := s.incrementCommit(MatchIndex)
+		if i == -1 {
+			fmt.Printf("ERROR: Commit reply had non-existant MatchIndex\n")
+			return i
+		}
+		majority := uint((len(s.client.Peers) + 1) / 2) //TODO fix simple majority
+		if s.leader.queue[i].commit_count >= majority {
+			s.leader.queue = delete(s.leader.queue, uint(i))
+			// TODO Send to broker
+		}
+	return 1
 }
+*/

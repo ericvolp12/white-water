@@ -83,7 +83,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	if reply.VoteGranted == true {
 		s.numVotes += 1
 	}
-	if s.numVotes > (len(s.client.Peers)+1)/2 { // become leader, send empty heartbeat
+	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
 		s.state = leader
 		newmsg := appendMessage{}
 		newmsg.Term = s.currentTerm
