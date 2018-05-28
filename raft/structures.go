@@ -13,8 +13,8 @@ type entry struct {
 }
 
 type leaderState struct {
-	nextIndex  []uint
-	matchIndex []uint
+	nextIndex  map[string]uint
+	matchIndex map[string]uint
 }
 
 type volatileState struct {
@@ -54,7 +54,9 @@ type appendMessage struct { //type="appendEntries"
 }
 
 type appendReply struct { //type="appendReply"
-
+	Term       uint
+	Success    bool
+	MatchIndex uint
 }
 
 type requestVote struct { //type="requestVote"
