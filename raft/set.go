@@ -46,3 +46,20 @@ func (s *Sailor) handle_commit(MatchIndex uint) int {
 	return 1
 }
 */
+
+func (s *Sailor) handle_prepare(PrepLower uint, PrepUpper uint) error {
+
+	for i := PrepLower; i <= PrepUpper; i++ {
+		if i <= s.volatile.commitIndex {
+			continue
+		}
+		s.log[i-1].votes += 1
+		if s.log[i-1].votes > uint((len(s.client.Peers)+1)/2) && s.log[i-1].term == s.currentTerm {
+			for j := s.volatile.commitIndex + 1; j <= i; j++ {
+				s.log[j-1].votes = 1
+			}
+			s.volatile.commitIndex = i
+		}
+	}
+	return nil
+}
