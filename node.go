@@ -46,7 +46,7 @@ func main() {
 	s := raft.InitializeSailor(&client)
 
 	state := storage.InitializeState()
-	gets, sets, requestVote, appendEntry, timeouts := initializeChannels(&client)
+	gets, sets, requestVote, appendEntry, timereset, timeouts := initializeChannels(&client)
 
 	wg := sync.WaitGroup{}
 
@@ -59,7 +59,7 @@ func main() {
 	timer := time.NewTimer(time.Duration(5) * time.Second)
 	<-timer.C
 
-	go s.MsgHandler(gets, sets, requestVote, appendEntry, timeouts, &state)
+	go s.MsgHandler(gets, sets, requestVote, appendEntry, timereset, timeouts, &state)
 	wg.Add(1)
 
 	go s.Timer(timeouts, reset)
@@ -69,12 +69,13 @@ func main() {
 
 }
 
-func initializeChannels(client *messages.Client) (gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool) {
+func initializeChannels(client *messages.Client) (gets, sets, requestVote, appendEntry chan messages.Message, timereset, timeouts chan bool) {
 	gets = make(chan messages.Message, 500)
 	sets = make(chan messages.Message, 500)
 	requestVote = make(chan messages.Message, 500)
 	appendEntry = make(chan messages.Message, 500)
 	timeouts = make(chan bool, 500)
+	timereset = make(chan bool, 500)
 	client.Subscribe("get", &gets) // CHECK TYPE
 	client.Subscribe("set", &sets) // CHECK TYPE
 	client.Subscribe("requestVote", &requestVote)
