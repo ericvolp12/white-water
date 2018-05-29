@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"sync"
+	"time"
 
 	messages "github.com/ericvolp12/white-water/messages"
 	raft "github.com/ericvolp12/white-water/raft"
@@ -54,6 +55,9 @@ func main() {
 
 	go client.ReceiveMessages()
 	wg.Add(1)
+
+	timer := time.NewTimer(time.Duration(5) * time.Second)
+	<-timer.C
 
 	go s.MsgHandler(gets, sets, requestVote, appendEntry, timeouts, &state)
 	wg.Add(1)
