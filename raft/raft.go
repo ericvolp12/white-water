@@ -9,14 +9,14 @@ import (
 	storage "github.com/ericvolp12/white-water/storage"
 )
 
-func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool, state *storage.State) {
+func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.Message, timereset, timeouts chan bool, state *storage.State) {
 	for {
 		select {
 		case msg := <-timeouts:
 			//timeouts message handle
 			fmt.Printf("%s timeout handler got %s", s.client.NodeName, msg)
 			err := s.handle_timeout()
-			timeouts <- false // Triggers timer thread to restart timer
+			timereset <- false // Triggers timer thread to restart timer
 			if err != nil {
 				fmt.Printf("handle_timeout error: %v\n", err)
 			}
@@ -40,7 +40,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 
 					//Sets handle - Joseph
 				case msg := <-appendEntry:
-					timeouts <- false // Triggers timer thread to restart timer
+					timereset <- false // Triggers timer thread to restart timer
 					if msg.Type == "appendEntries" {
 						am := appendMessage{}
 						getPayload(msg.Value, &am)
@@ -54,7 +54,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						}
 					}
 				case msg := <-requestVote:
-					timeouts <- false //restart timer
+					timereset <- false //restart timer
 					if msg.Type == "requestVote" {
 						err := s.handle_requestVote(msg)
 						if err != nil {
@@ -68,7 +68,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			case candidate:
 				select {
 				case msg := <-appendEntry:
-					timeouts <- false // Triggers timer thread to restart timer
+					timereset <- false // Triggers timer thread to restart timer
 					if msg.Type == "appendEntries" {
 						am := appendMessage{}
 						getPayload(msg.Value, &am)
