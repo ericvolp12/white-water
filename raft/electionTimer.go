@@ -24,7 +24,7 @@ func (s *Sailor) Timer(TIMEOUT_SIGNAL chan bool) {
 				timer.Reset(new_time())
 			case <-timer.C:
 				TIMEOUT_SIGNAL <- true
-				fmt.Printf("Timeout Occured: %s\n", s.client.NodeName)
+				//				fmt.Printf("Timeout Occured: %s\n", s.client.NodeName)
 			}
 		}
 	}

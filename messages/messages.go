@@ -10,13 +10,13 @@ import (
 
 // Message is a Chistributed message struct
 type Message struct {
-	Type        string   `json:"type"`
-	ID          int      `json:"id,omitempty"`
-	Destination []string `json:"destination,omitempty"`
-	Key         string   `json:"key,omitempty"`
-	Error       string   `json:"error,omitempty"`
-	Source      string   `json:"source,omitempty"`
-	Value       string   `json:"value,omitempty"`
+	Type        string `json:"type"`
+	ID          int    `json:"id,omitempty"`
+	Destination string `json:"destination,omitempty"`
+	Key         string `json:"key,omitempty"`
+	Error       string `json:"error,omitempty"`
+	Source      string `json:"source,omitempty"`
+	Value       string `json:"value,omitempty"`
 }
 
 // Filter is a struct for associating incoming message types to callback channels
@@ -169,28 +169,40 @@ func (c *Client) sendMessage(msg Message) error {
 
 // Broadcast sends a message to all of a client's peers
 func (c *Client) Broadcast(msg Message) error {
-	msg.Destination = c.Peers
 	fmt.Printf("Broadcasting message to all peers...\n")
-	return c.sendMessage(msg)
+	for i := range c.Peers {
+		msg.Destination = c.Peers[i]
+		err := c.sendMessage(msg)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+	//	msg.Destination = c.Peers
 }
 
 // SendToPeer sends to a specific peer
 func (c *Client) SendToPeer(msg Message, peer string) error {
-	msg.Destination = []string{peer}
+	msg.Destination = peer
 	fmt.Printf("Sending message one peer...\n")
 	return c.sendMessage(msg)
 }
 
 // SendToPeers sends to a set of peers
 func (c *Client) SendToPeers(msg Message, peers []string) error {
-	msg.Destination = peers
-	fmt.Printf("Sending message to specific peers...\n")
-	return c.sendMessage(msg)
+	for i := range peers {
+		msg.Destination = peers[i]
+		err := c.sendMessage(msg)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // SendToBroker sends a message to the broker and no one else
 func (c *Client) SendToBroker(msg Message) error {
-	msg.Destination = []string{}
+	msg.Destination = ""
 	fmt.Printf("Sending message to broker...\n")
 	msg.Print()
 	return c.sendMessage(msg)

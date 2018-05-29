@@ -14,6 +14,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 		select {
 		case _ = <-timeouts:
 			//timeouts message handle
+			fmt.Printf("about to call handler%s\n", s.client.NodeName)
 			err := s.handle_timeout()
 			timeouts <- false // Triggers timer thread to restart timer
 			if err != nil {
@@ -47,7 +48,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						rep := makeReply(s, &msg, "appendReply")
 						rep.Value = makePayload(val)
 						rep.Error = err.Error()
-						err = s.client.SendToPeers(rep, rep.Destination)
+						err = s.client.SendToPeer(rep, rep.Destination) //TODO
 						if err != nil {
 							fmt.Printf("follower, append entries: %s", err)
 						}
@@ -75,7 +76,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						rep := makeReply(s, &msg, "appendReply")
 						rep.Value = makePayload(val)
 						rep.Error = err.Error()
-						err = s.client.SendToPeers(rep, rep.Destination)
+						err = s.client.SendToPeer(rep, rep.Destination) //TODO
 						if err != nil {
 							fmt.Printf("candidate, append entries: %s", err)
 						}
@@ -119,7 +120,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						rep := makeReply(s, &msg, "appendReply")
 						rep.Value = makePayload(val)
 						rep.Error = err.Error()
-						err = s.client.SendToPeers(rep, rep.Destination)
+						err = s.client.SendToPeer(rep, rep.Destination) //TODO
 						if err != nil {
 							fmt.Printf("leader, append entries: %s", err)
 						}
@@ -152,7 +153,7 @@ func makeReply(s *Sailor, msg *messages.Message, typestr string) messages.Messag
 	rep := messages.Message{}
 	rep.Type = typestr
 	rep.ID = 0
-	rep.Destination = []string{msg.Source}
+	rep.Destination = msg.Source
 	rep.Source = s.client.NodeName
 	return rep
 }

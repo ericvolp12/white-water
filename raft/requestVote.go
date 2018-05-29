@@ -7,6 +7,7 @@ import (
 )
 
 func (s *Sailor) handle_timeout() error {
+	fmt.Printf("in handle_timeout%s\n", s.client.NodeName)
 	if s.state == leader {
 		return sendHeartbeats(s)
 	}
@@ -33,6 +34,7 @@ func (s *Sailor) handle_timeout() error {
 	zmqMsg.Type = "requestVote"
 	zmqMsg.Source = s.client.NodeName
 	zmqMsg.Value = makePayload(newmsg)
+	fmt.Printf("Broadcasting\n")
 	return s.client.Broadcast(zmqMsg)
 }
 
@@ -87,6 +89,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 	}
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
 		s.state = leader
+		fmt.Printf("LEADER ELECTED\n")
 		timeouts <- false // Triggers timer thread to restart timer as leader
 		newmsg := appendMessage{}
 		newmsg.Term = s.currentTerm
