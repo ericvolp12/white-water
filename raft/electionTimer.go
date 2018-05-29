@@ -10,7 +10,7 @@ func new_time() time.Duration {
 	return time.Duration((rand.Intn(150) + 150)) * time.Millisecond
 }
 
-func (s *Sailor) timer(TIMEOUT_SIGNAL chan bool) {
+func (s *Sailor) Timer(TIMEOUT_SIGNAL chan bool) {
 	timer := time.NewTimer(new_time())
 	for {
 		if s.state == leader {

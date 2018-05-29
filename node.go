@@ -58,8 +58,8 @@ func main() {
 	go s.MsgHandler(gets, sets, requestVote, appendEntry, timeouts, &state)
 	wg.Add(1)
 
-	//go raft.timer(timeouts)
-	//wg.Add(1)
+	go s.Timer(timeouts)
+	wg.Add(1)
 
 	wg.Wait()
 
