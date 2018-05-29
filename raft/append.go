@@ -55,8 +55,8 @@ func sendAppendEntries(s *Sailor, peer string) error {
 		am.PrevLogTerm = 0
 		am.Entries = nil
 	} else {
-		fmt.Printf("nextIndex of peer: %d\n", s.leader.nextIndex[peer])
-		if len(s.log) == 1 {
+		fmt.Printf("nextIndex of peer: %d, peer: %s\n", s.leader.nextIndex[peer], peer)
+		if len(s.log) == 1 || int(s.leader.nextIndex[peer])-2 <= 0 {
 			am.PrevLogTerm = 0
 		} else {
 			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
