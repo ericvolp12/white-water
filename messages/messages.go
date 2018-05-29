@@ -167,8 +167,8 @@ func (c *Client) ReceiveMessages() {
 func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
 	// Because the docs are wrong we gotta send many messages
-	if len(msg.Destination) > 1 {
-		fmt.Printf("Sending dumb messages, Borja be damned!\n")
+	if len(msg.Destination) > 0 {
+		//fmt.Printf("Sending dumb messages, Borja be damned!\n")
 		for _, dest := range msg.Destination {
 			dMsg := dumbMessage{}
 			dMsg.Destination = dest
@@ -197,12 +197,23 @@ func (c *Client) sendMessage(msg Message) error {
 				return fmt.Errorf("Error sending message: zero bytes sent")
 			}
 			// Wait for an ack response
-			ack, err := c.req.RecvMessage(0)
+			_, err = c.req.RecvMessage(0)
 			// Print out the ack
-			fmt.Printf("Ack: %v\n", ack)
+			//fmt.Printf("Ack: %v\n", ack)
 		}
 	} else {
-		formattedMsg, err := json.Marshal(msg)
+		dMsg := dumbMessage{}
+		dMsg.Destination = ""
+		dMsg.Type = msg.Type
+		dMsg.Source = msg.Source
+		dMsg.Value = msg.Value
+		dMsg.Key = msg.Key
+		dMsg.Value = msg.Value
+		dMsg.Error = msg.Error
+		dMsg.ID = msg.ID
+		dMsg.print()
+
+		formattedMsg, err := json.Marshal(dMsg)
 		if err != nil {
 			fmt.Printf("Error marshalling message: %v\n", err)
 			return err
@@ -218,9 +229,9 @@ func (c *Client) sendMessage(msg Message) error {
 			return fmt.Errorf("Error sending message: zero bytes sent")
 		}
 		// Wait for an ack response
-		ack, err := c.req.RecvMessage(0)
+		_, err = c.req.RecvMessage(0)
 		// Print out the ack
-		fmt.Printf("Ack: %v\n", ack)
+		//fmt.Printf("Ack: %v\n", ack)
 	}
 	return nil
 }
@@ -235,14 +246,14 @@ func (c *Client) Broadcast(msg Message) error {
 // SendToPeer sends to a specific peer
 func (c *Client) SendToPeer(msg Message, peer string) error {
 	msg.Destination = []string{peer}
-	fmt.Printf("Sending message one peer...\n")
+	//fmt.Printf("Sending message one peer... %+v\n", msg)
 	return c.sendMessage(msg)
 }
 
 // SendToPeers sends to a set of peers
 func (c *Client) SendToPeers(msg Message, peers []string) error {
 	msg.Destination = peers
-	fmt.Printf("Sending message to specific peers...\n")
+	//fmt.Printf("Sending message to specific peers...\n")
 	return c.sendMessage(msg)
 }
 
@@ -256,18 +267,18 @@ func (c *Client) SendToBroker(msg Message) error {
 
 // Print prints a message
 func (m *Message) Print() {
-	formattedMsg, err := json.Marshal(*m)
+	_, err := json.Marshal(*m)
 	if err != nil {
 		fmt.Printf("Error printing message: %v\n", err)
 	}
-	fmt.Printf("Message: %v\n", string(formattedMsg))
+	//fmt.Printf("Message: %v\n", string(formattedMsg))
 }
 
 // Print prints a message
 func (m *dumbMessage) print() {
-	formattedMsg, err := json.Marshal(*m)
+	_, err := json.Marshal(*m)
 	if err != nil {
 		fmt.Printf("Error printing message: %v\n", err)
 	}
-	fmt.Printf("Message: %v\n", string(formattedMsg))
+	//fmt.Printf("Message: %v\n", string(formattedMsg))
 }

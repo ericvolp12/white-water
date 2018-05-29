@@ -15,7 +15,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		return rep, nil
 	}
 
-	if len(s.log) <= int(am.PrevLogIndex-1) || s.log[am.PrevLogIndex-1].term != am.PrevLogTerm {
+	if len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].term != am.PrevLogTerm) {
 		return rep, nil
 	}
 
@@ -47,8 +47,15 @@ func sendAppendEntries(s *Sailor, peer string) error {
 	am.Term = s.currentTerm
 	am.LeaderId = s.client.NodeName
 	am.PrevLogIndex = s.leader.nextIndex[peer] - 1
-	am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
-	am.Entries = s.log[s.leader.nextIndex[peer]-1:]
+	//fmt.Printf("Log: %+v, s.leader.nextIndex[peer]-2: %d", s.log, s.leader.nextIndex[peer]-2)
+	if len(s.log) == 0 {
+		am.PrevLogTerm = 0
+		am.Entries = nil
+	} else {
+		am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
+		am.Entries = s.log[s.leader.nextIndex[peer]-1:]
+	}
+
 	am.LeaderCommit = s.volatile.commitIndex
 	ap := messages.Message{}
 	ap.Type = "appendEntries"

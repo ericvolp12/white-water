@@ -30,7 +30,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					rep := makeReply(s, &msg, "getReply")
 					rep.Key = msg.Key
 					rep.Value = val
-					rep.Error = err.Error()
+					//rep.Error = err.Error()
 					err = s.client.SendToBroker(rep)
 					if err != nil {
 						//handle error
@@ -46,7 +46,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						val, err := handleAppendEntries(s, state, &am)
 						rep := makeReply(s, &msg, "appendReply")
 						rep.Value = makePayload(val)
-						rep.Error = err.Error()
+						//rep.Error = err.Error()
 						err = s.client.SendToPeers(rep, rep.Destination)
 						if err != nil {
 							fmt.Printf("follower, append entries: %s", err)
@@ -74,7 +74,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						val, err := handleAppendEntries(s, state, &am)
 						rep := makeReply(s, &msg, "appendReply")
 						rep.Value = makePayload(val)
-						rep.Error = err.Error()
+						//rep.Error = err.Error()
 						err = s.client.SendToPeers(rep, rep.Destination)
 						if err != nil {
 							fmt.Printf("candidate, append entries: %s", err)
@@ -101,7 +101,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					rep := makeReply(s, &msg, "getReply")
 					rep.Key = msg.Key
 					rep.Value = val
-					rep.Error = err.Error()
+					//rep.Error = err.Error()
 					err = s.client.SendToBroker(rep)
 					if err != nil {
 						//handle error
@@ -118,7 +118,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						}
 						rep := makeReply(s, &msg, "appendReply")
 						rep.Value = makePayload(val)
-						rep.Error = err.Error()
+						//rep.Error = err.Error()
 						err = s.client.SendToPeers(rep, rep.Destination)
 						if err != nil {
 							fmt.Printf("leader, append entries: %s", err)

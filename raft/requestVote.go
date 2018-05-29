@@ -87,27 +87,22 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 	}
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
 		s.state = leader
-		timeouts <- false // Triggers timer thread to restart timer as leader
-		newmsg := appendMessage{}
-		newmsg.Term = s.currentTerm
-		newmsg.LeaderId = s.client.NodeName
-
-		last := uint(len(s.log))
-		if last == 0 {
-			newmsg.PrevLogTerm = 0
-		} else {
-			newmsg.PrevLogTerm = s.log[last-1].term
+		s.leader = &leaderState{}
+		s.leader.nextIndex = make(map[string]uint)
+		for _, peer := range s.client.Peers {
+			s.leader.nextIndex[peer] = uint(len(s.log) + 2)
 		}
-		newmsg.PrevLogIndex = last
-		newmsg.Entries = nil
-		newmsg.LeaderCommit = s.volatile.commitIndex
+		s.leader.matchIndex = make(map[string]uint)
+		for _, peer := range s.client.Peers {
+			s.leader.matchIndex[peer] = 0
+		}
+		timeouts <- false // Triggers timer thread to restart timer as leader
 
-		// TODO (MD) makeReply w/ nil dest
-		zmqmsg := messages.Message{}
-		zmqmsg.Type = "appendEntries"
-		zmqmsg.Source = s.client.NodeName
-		zmqmsg.Value = makePayload(newmsg)
-		return s.client.Broadcast(zmqmsg)
+		err := sendHeartbeats(s)
+		if err != nil {
+			fmt.Printf("Error in voteReply: %+v", err)
+		}
+
 	}
 	return nil
 }
