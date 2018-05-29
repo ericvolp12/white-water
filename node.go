@@ -62,7 +62,7 @@ func main() {
 	go s.MsgHandler(gets, sets, requestVote, appendEntry, timereset, timeouts, &state)
 	wg.Add(1)
 
-	go s.Timer(timeouts, reset)
+	go s.Timer(timeouts, timereset)
 	wg.Add(1)
 
 	wg.Wait()
