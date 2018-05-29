@@ -41,7 +41,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 	return rep, nil
 }
 
-func sendAppendEntries(s *Sailor, state *storage.State, peer string) error {
+func sendAppendEntries(s *Sailor, peer string) error {
 	//Converted to 1 indexed
 	am := appendMessage{}
 	am.Term = s.currentTerm
@@ -58,9 +58,9 @@ func sendAppendEntries(s *Sailor, state *storage.State, peer string) error {
 	return s.client.SendToPeer(ap, peer)
 }
 
-func sendHeartbeats(s *Sailor, state *storage.State) error {
+func sendHeartbeats(s *Sailor) error {
 	for _, peer := range s.client.Peers {
-		err := sendAppendEntries(s, state, peer)
+		err := sendAppendEntries(s, peer)
 		if err != nil {
 			return err
 		}
@@ -83,7 +83,7 @@ func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source 
 			return nil
 		}
 		s.leader.nextIndex[source] -= 1
-		return sendAppendEntries(s, state, source)
+		return sendAppendEntries(s, source)
 	}
 	return nil
 }

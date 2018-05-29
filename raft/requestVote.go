@@ -7,6 +7,9 @@ import (
 )
 
 func (s *Sailor) handle_timeout() error {
+	if s.state == leader {
+		return sendHeartbeats(s)
+	}
 	// ONLY BECOME CANDIDATE IF ALLOWED
 	s.state = candidate
 	s.currentTerm += 1
