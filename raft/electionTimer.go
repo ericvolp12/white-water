@@ -17,13 +17,14 @@ func (s *Sailor) Timer(TIMEOUT_SIGNAL chan bool) {
 			timer.Reset(time.Duration(50) * time.Millisecond)
 			<-timer.C
 			TIMEOUT_SIGNAL <- true
+			fmt.Printf("HEARTBEAT Occured: %s\n", s.client.NodeName)
 		} else {
 			select {
 			case <-TIMEOUT_SIGNAL:
 				timer.Reset(new_time())
 			case <-timer.C:
 				TIMEOUT_SIGNAL <- true
-				fmt.Printf("Timeout Occured\n")
+				fmt.Printf("Timeout Occured: %s\n", s.client.NodeName)
 			}
 		}
 	}
