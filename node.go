@@ -66,11 +66,11 @@ func main() {
 }
 
 func initializeChannels(client *messages.Client) (gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool) {
-	gets = make(chan messages.Message)
-	sets = make(chan messages.Message)
-	requestVote = make(chan messages.Message)
-	appendEntry = make(chan messages.Message)
-	timeouts = make(chan bool)
+	gets = make(chan messages.Message, 500)
+	sets = make(chan messages.Message, 500)
+	requestVote = make(chan messages.Message, 500)
+	appendEntry = make(chan messages.Message, 500)
+	timeouts = make(chan bool, 500)
 	client.Subscribe("get", &gets) // CHECK TYPE
 	client.Subscribe("set", &sets) // CHECK TYPE
 	client.Subscribe("requestVote", &requestVote)

@@ -54,9 +54,12 @@ type appendMessage struct { //type="appendEntries"
 }
 
 type appendReply struct { //type="appendReply"
-	Term       uint
-	Success    bool
-	MatchIndex uint
+	Term      uint
+	Success   bool
+	PrepLower uint
+	PrepUpper uint
+	ComLower  uint
+	ComUpper  uint
 }
 
 type requestVote struct { //type="requestVote"

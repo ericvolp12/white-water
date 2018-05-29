@@ -21,6 +21,8 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 
 	rep.Success = true
 
+	rep.PrepLower = am.PrevLogIndex + 1
+	rep.ComLower = s.volatile.commitIndex
 	s.log = append(s.log[:am.PrevLogIndex], am.Entries...)
 	if am.LeaderCommit > s.volatile.commitIndex {
 		if int(am.LeaderCommit) <= len(s.log) {
@@ -34,7 +36,8 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		}
 
 	}
-	rep.MatchIndex = uint(len(s.log))
+	rep.PrepUpper = uint(len(s.log))
+	rep.ComUpper = s.volatile.commitIndex
 	return rep, nil
 }
 
@@ -66,12 +69,13 @@ func sendHeartbeats(s *Sailor, state *storage.State) error {
 }
 
 func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source string) error {
-	//TODO(JM): Check for moving commit index?
-
-	//TODO(MAX): Commit code
 	if ar.Success {
-		s.leader.nextIndex[source] = ar.MatchIndex + 1
-		s.leader.matchIndex[source] = ar.MatchIndex
+
+		_ = s.handle_prepare(ar.PrepLower, ar.PrepUpper)
+		_ = s.handle_commit(ar.ComLower, ar.ComUpper, state)
+
+		s.leader.nextIndex[source] = ar.PrepUpper + 1
+		s.leader.matchIndex[source] = ar.PrepUpper
 		//s.handle_commit(ar.MatchIndex) // TODO MAKE SUER THIS WORKS
 	} else {
 		if ar.Term != s.currentTerm {
