@@ -23,7 +23,7 @@ type Message struct {
 type dumbMessage struct {
 	Type        string `json:"type"`
 	ID          int    `json:"id,omitempty"`
-	Destination string `json:"destination,omitempty"`
+	Destination string `json:"destination"`
 	Key         string `json:"key,omitempty"`
 	Error       string `json:"error,omitempty"`
 	Source      string `json:"source,omitempty"`

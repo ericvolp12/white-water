@@ -28,7 +28,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 				case msg := <-gets:
 					//TODO(JM): Decide where to put leader-notify
 					val, err := handleGetRequest(msg.Key, s, state)
-					rep := makeReply(s, &msg, "getReply")
+					rep := makeReply(s, &msg, "getResponse")
 					rep.Key = msg.Key
 					rep.Value = val
 					//rep.Error = err.Error()
@@ -88,7 +88,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 							fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
 						}
 					} else { // Type == "voteReply"
-						err := s.handle_voteReply(msg, timeouts)
+						err := s.handle_voteReply(msg, timereset)
 						if err != nil {
 							fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 						}
@@ -101,7 +101,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 				select {
 				case msg := <-gets:
 					val, err := handleGetRequest(msg.Key, s, state)
-					rep := makeReply(s, &msg, "getReply")
+					rep := makeReply(s, &msg, "getResponse")
 					rep.Key = msg.Key
 					rep.Value = val
 					//rep.Error = err.Error()

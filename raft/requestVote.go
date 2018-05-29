@@ -99,6 +99,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 			s.leader.matchIndex[peer] = 0
 		}
 		timeouts <- false // Triggers timer thread to restart timer as leader
+		timeouts <- false // Triggers the leader timer to start
 
 		err := sendHeartbeats(s)
 		if err != nil {

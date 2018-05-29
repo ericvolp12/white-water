@@ -17,6 +17,7 @@ func (s *Sailor) Timer(TIMEOUT_SIGNAL chan bool, RESET chan bool) {
 			select {
 			case <-RESET:
 				timer.Reset(time.Duration(500) * time.Millisecond)
+				fmt.Printf("Timer Reset Leader: %s\n", s.client.NodeName)
 			case <-timer.C:
 				TIMEOUT_SIGNAL <- true
 				fmt.Printf("HEARTBEAT Occured: %s, %s\n", s.client.NodeName, s.state)
