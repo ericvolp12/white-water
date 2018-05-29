@@ -69,12 +69,10 @@ func sendHeartbeats(s *Sailor, state *storage.State) error {
 }
 
 func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source string) error {
-	//TODO(JM): Check for moving commit index?
-	//TODO(MAX): Commit code
 	if ar.Success {
 
 		_ = s.handle_prepare(ar.PrepLower, ar.PrepUpper)
-		//_ = s.handle_commit(ar.ComLower, ar.ComUpper, state)
+		_ = s.handle_commit(ar.ComLower, ar.ComUpper, state)
 
 		s.leader.nextIndex[source] = ar.PrepUpper + 1
 		s.leader.matchIndex[source] = ar.PrepUpper
