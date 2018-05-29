@@ -11,8 +11,7 @@ func (s *Sailor) handle_timeout() error {
 	s.state = candidate
 	s.currentTerm += 1
 	s.votedFor = s.client.NodeName
-	s.numVotes = 1      // Votes for itself
-	s.resetTimer = true // Triggers timer thread to restart timer
+	s.numVotes = 1 // Votes for itself
 
 	// Fill RequestVotes RPC struct
 	newmsg := requestVote{}
@@ -66,7 +65,7 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	return s.client.SendToPeer(zmq_msg, original_msg.Source)
 }
 
-func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
+func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan bool) error {
 	reply := reply{}
 	err := getPayload(original_msg.Value, &reply)
 	if err != nil {
@@ -85,6 +84,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	}
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
 		s.state = leader
+		timeouts <- false // Triggers timer thread to restart timer as leader
 		newmsg := appendMessage{}
 		newmsg.Term = s.currentTerm
 		newmsg.LeaderId = s.client.NodeName

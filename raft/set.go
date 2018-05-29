@@ -17,7 +17,7 @@ func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.State) error {
 	majority := uint((len(s.client.Peers) + 1) / 2)
 	for i := lowCommit - 1; i < upperCommit-1; i++ {
-		s.log[i].votes += 1
+		s.log[i].votes += 1 // Increments the number of commits
 		if s.log[i].votes > majority {
 			_, err := state.ApplyTransaction(s.log[i].trans)
 			if err != nil {

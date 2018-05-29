@@ -42,7 +42,6 @@ type Sailor struct {
 	numVotes        int
 	volatile        *volatileState
 	leader          *leaderState
-	resetTimer      bool
 }
 
 type appendMessage struct { //type="appendEntries"

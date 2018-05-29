@@ -15,6 +15,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 		case _ = <-timeouts:
 			//timeouts message handle
 			err := s.handle_timeout()
+			timeouts <- false // Triggers timer thread to restart timer
 			if err != nil {
 				fmt.Printf("handle_timeout error: %v\n", err)
 			}
@@ -38,6 +39,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 
 					//Sets handle - Joseph
 				case msg := <-appendEntry:
+					timeouts <- false // Triggers timer thread to restart timer
 					if msg.Type == "appendEntries" {
 						am := appendMessage{}
 						getPayload(msg.Value, &am)
@@ -51,7 +53,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 						}
 					}
 				case msg := <-requestVote:
-					s.resetTimer = true //restart timer
+					timeouts <- false //restart timer
 					if msg.Type == "requestVote" {
 						err := s.handle_requestVote(msg)
 						if err != nil {
@@ -65,6 +67,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 			case candidate:
 				select {
 				case msg := <-appendEntry:
+					timeouts <- false // Triggers timer thread to restart timer
 					if msg.Type == "appendEntries" {
 						am := appendMessage{}
 						getPayload(msg.Value, &am)
@@ -84,7 +87,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 							fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
 						}
 					} else { // Type == "voteReply"
-						err := s.handle_voteReply(msg)
+						err := s.handle_voteReply(msg, timeouts)
 						if err != nil {
 							fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 						}
@@ -189,5 +192,4 @@ func (s *Sailor) becomeFollower(term uint) {
 	s.votedFor = ""
 	s.numVotes = 0
 	s.leader = nil
-	s.resetTimer = true //always restart timer on failover
 }
