@@ -1,6 +1,8 @@
 package raft
 
 import (
+	"fmt"
+
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
 )
@@ -53,7 +55,12 @@ func sendAppendEntries(s *Sailor, peer string) error {
 		am.PrevLogTerm = 0
 		am.Entries = nil
 	} else {
-		am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
+		fmt.Printf("nextIndex of peer: %d\n", s.leader.nextIndex[peer])
+		if len(s.log) == 1 {
+			am.PrevLogTerm = 0
+		} else {
+			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
+		}
 		am.Entries = s.log[s.leader.nextIndex[peer]-1:]
 	}
 

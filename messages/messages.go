@@ -22,11 +22,11 @@ type Message struct {
 // dumbMessage is a Chistributed message struct where you can only send to one dest
 type dumbMessage struct {
 	Type        string `json:"type"`
-	ID          int    `json:"id,omitempty"`
+	ID          int    `json:"id"`
 	Destination string `json:"destination"`
-	Key         string `json:"key,omitempty"`
+	Key         string `json:"key"`
 	Error       string `json:"error,omitempty"`
-	Source      string `json:"source,omitempty"`
+	Source      string `json:"source"`
 	Value       string `json:"value,omitempty"`
 }
 

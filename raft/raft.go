@@ -30,8 +30,11 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					val, err := handleGetRequest(msg.Key, s, state)
 					rep := makeReply(s, &msg, "getResponse")
 					rep.Key = msg.Key
-					rep.Value = val
-					//rep.Error = err.Error()
+					if err != nil {
+						rep.Error = err.Error()
+					} else {
+						rep.Value = val
+					}
 					err = s.client.SendToBroker(rep)
 					if err != nil {
 						//handle error
@@ -103,8 +106,11 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					val, err := handleGetRequest(msg.Key, s, state)
 					rep := makeReply(s, &msg, "getResponse")
 					rep.Key = msg.Key
-					rep.Value = val
-					//rep.Error = err.Error()
+					if err != nil {
+						rep.Error = err.Error()
+					} else {
+						rep.Value = val
+					}
 					err = s.client.SendToBroker(rep)
 					if err != nil {
 						//handle error
