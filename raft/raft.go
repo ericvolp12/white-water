@@ -109,7 +109,8 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					if err != nil {
 						//handle error
 					}
-				case _ = <-sets:
+				case msg := <-sets:
+					s.handle_set(msg, state)
 					//Sets handle - Joseph
 				case msg := <-appendEntry:
 					if msg.Type == "appendEntries" {

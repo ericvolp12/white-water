@@ -26,7 +26,7 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 				return err
 			}
 			zmqMsg := messages.Message{} //TODO confirm type string
-			zmqMsg.Type = "setReply"
+			zmqMsg.Type = "setResponse"
 			zmqMsg.Source = s.client.NodeName
 			zmqMsg.Key = s.log[i].trans.Key
 			zmqMsg.Value = s.log[i].trans.Value + " Write Successful"
