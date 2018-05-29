@@ -15,7 +15,8 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		return rep, nil
 	}
 
-	if len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].term != am.PrevLogTerm) {
+	//	fmt.Printf("prevLogIndex %d", am.PrevLogIndex)
+	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].term != am.PrevLogTerm)) {
 		return rep, nil
 	}
 
