@@ -12,6 +12,7 @@ func (s *Sailor) handle_timeout() error {
 	}
 	// ONLY BECOME CANDIDATE IF ALLOWED
 	s.state = candidate
+	fmt.Printf("Becoming candidate %s\n", s.client.NodeName)
 	s.currentTerm += 1
 	s.votedFor = s.client.NodeName
 	s.numVotes = 1 // Votes for itself
@@ -86,6 +87,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 		s.numVotes += 1
 	}
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
+		fmt.Printf("Becoming leader! %s", s.client.NodeName)
 		s.state = leader
 		s.leader = &leaderState{}
 		s.leader.nextIndex = make(map[string]uint)

@@ -12,8 +12,9 @@ import (
 func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool, state *storage.State) {
 	for {
 		select {
-		case _ = <-timeouts:
+		case msg := <-timeouts:
 			//timeouts message handle
+			fmt.Printf("%s timeout handler got %s", s.client.NodeName, msg)
 			err := s.handle_timeout()
 			timeouts <- false // Triggers timer thread to restart timer
 			if err != nil {
@@ -92,6 +93,8 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 							fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 						}
 					}
+				default:
+
 					//VoteReply handle - Max
 				}
 			case leader:
@@ -142,7 +145,10 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					}
 					//TODO Should votereplies w/ larger Term be considered?
 					// Ignore vote replies if in leader state
+				default:
+
 				}
+			default:
 			}
 		}
 	}
@@ -187,6 +193,7 @@ func getPayload(value string, payload interface{}) error {
 
 // Converts Sailor into follower state (Normally if msg.Term > s.currentTerm)
 func (s *Sailor) becomeFollower(term uint) {
+	fmt.Printf("Becoming follower! %s\n", s.client.NodeName)
 	s.currentTerm = term
 	s.state = follower
 	s.votedFor = ""

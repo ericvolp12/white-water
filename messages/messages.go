@@ -126,7 +126,6 @@ func (c *Client) ReceiveMessages() {
 			fmt.Printf("Error receiveing message: %v\n", err)
 			break
 		}
-		fmt.Println("Message received:")
 
 		dMsg := dumbMessage{}
 		// Unwrap the message from JSON to Go
@@ -143,13 +142,15 @@ func (c *Client) ReceiveMessages() {
 		cMsg.Error = dMsg.Error
 		cMsg.ID = dMsg.ID
 
+		fmt.Println("Message received: %s, %s, %s", c.NodeName, cMsg.Source, cMsg.Type)
+
 		// Print the type of the message
-		fmt.Printf("\tType: %v\n", cMsg.Type)
-		fmt.Printf("\tFull message: %v\n", msg[2])
+		//fmt.Printf("\tType: %v\n", cMsg.Type)
+		//fmt.Printf("\tFull message: %v\n", msg[2])
 
 		*c.incoming <- cMsg
 
-		fmt.Printf("MUX: Iterating over filters...\n")
+		//fmt.Printf("MUX: Iterating over filters...\n")
 		c.filterMux.Lock()
 		for _, filter := range c.filters {
 			if cMsg.Type == filter.Type {
@@ -157,7 +158,7 @@ func (c *Client) ReceiveMessages() {
 			}
 		}
 		c.filterMux.Unlock()
-		fmt.Printf("MUX: Finished iterating!\n")
+		//fmt.Printf("MUX: Finished iterating!\n")
 
 	}
 	fmt.Printf("Ending message receive loop...\n")
@@ -198,6 +199,9 @@ func (c *Client) sendMessage(msg Message) error {
 			}
 			// Wait for an ack response
 			_, err = c.req.RecvMessage(0)
+			if err != nil {
+				fmt.Printf("Error in sendMessage (%s, %+v)\n", c.NodeName, err)
+			}
 			// Print out the ack
 			//fmt.Printf("Ack: %v\n", ack)
 		}
@@ -239,7 +243,7 @@ func (c *Client) sendMessage(msg Message) error {
 // Broadcast sends a message to all of a client's peers
 func (c *Client) Broadcast(msg Message) error {
 	msg.Destination = c.Peers
-	fmt.Printf("Broadcasting message to all peers...\n")
+	fmt.Printf("Broadcasting message to all peers... %s\n", c.NodeName)
 	return c.sendMessage(msg)
 }
 
