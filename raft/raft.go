@@ -164,7 +164,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 func makeReply(s *Sailor, msg *messages.Message, typestr string) messages.Message {
 	rep := messages.Message{}
 	rep.Type = typestr
-	rep.ID = 0
+	rep.ID = msg.ID
 	rep.Destination = []string{msg.Source}
 	rep.Source = s.client.NodeName
 	return rep
