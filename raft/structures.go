@@ -11,6 +11,7 @@ type entry struct {
 	term  uint
 	trans storage.Transaction
 	votes uint
+	id    int
 }
 
 type leaderState struct {

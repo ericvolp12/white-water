@@ -10,7 +10,7 @@ import (
 // Generats a set transaction and applies it to the raft log
 func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 	trans := storage.GenerateTransaction(storage.SetOp, msg.Key, msg.Value)
-	newEntry := entry{term: s.currentTerm, trans: trans, votes: 1}
+	newEntry := entry{term: s.currentTerm, trans: trans, votes: 1, id: msg.ID}
 	s.log = append(s.log, newEntry)
 }
 
@@ -31,7 +31,8 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 			zmqMsg.Type = "setResponse"
 			zmqMsg.Source = s.client.NodeName
 			zmqMsg.Key = s.log[i].trans.Key
-			zmqMsg.Value = s.log[i].trans.Value + " Write Successful"
+			zmqMsg.ID = s.log[i].id
+			zmqMsg.Value = s.log[i].trans.Value
 			err = s.client.SendToBroker(zmqMsg)
 			if err != nil {
 				fmt.Printf("Handle commit SendToBroker error:%v\n", err)
