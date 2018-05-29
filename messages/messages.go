@@ -19,6 +19,17 @@ type Message struct {
 	Value       string   `json:"value,omitempty"`
 }
 
+// dumbMessage is a Chistributed message struct where you can only send to one dest
+type dumbMessage struct {
+	Type        string `json:"type"`
+	ID          int    `json:"id,omitempty"`
+	Destination string `json:"destination,omitempty"`
+	Key         string `json:"key,omitempty"`
+	Error       string `json:"error,omitempty"`
+	Source      string `json:"source,omitempty"`
+	Value       string `json:"value,omitempty"`
+}
+
 // Filter is a struct for associating incoming message types to callback channels
 type Filter struct {
 	Type     string        // The type of message to filter on
@@ -117,10 +128,20 @@ func (c *Client) ReceiveMessages() {
 		}
 		fmt.Println("Message received:")
 
-		cMsg := Message{}
+		dMsg := dumbMessage{}
 		// Unwrap the message from JSON to Go
 		// Index 2 should be the json payload
-		json.Unmarshal([]byte(msg[2]), &cMsg)
+		json.Unmarshal([]byte(msg[2]), &dMsg)
+
+		cMsg := Message{}
+		cMsg.Destination = []string{dMsg.Destination}
+		cMsg.Type = dMsg.Type
+		cMsg.Source = dMsg.Source
+		cMsg.Value = dMsg.Value
+		cMsg.Key = dMsg.Key
+		cMsg.Value = dMsg.Value
+		cMsg.Error = dMsg.Error
+		cMsg.ID = dMsg.ID
 
 		// Print the type of the message
 		fmt.Printf("\tType: %v\n", cMsg.Type)
@@ -145,25 +166,62 @@ func (c *Client) ReceiveMessages() {
 // sendMessage sends a message on a client's requester
 func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
-	formattedMsg, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Printf("Error marshalling message: %v\n", err)
-		return err
+	// Because the docs are wrong we gotta send many messages
+	if len(msg.Destination) > 1 {
+		fmt.Printf("Sending dumb messages, Borja be damned!\n")
+		for _, dest := range msg.Destination {
+			dMsg := dumbMessage{}
+			dMsg.Destination = dest
+			dMsg.Type = msg.Type
+			dMsg.Source = msg.Source
+			dMsg.Value = msg.Value
+			dMsg.Key = msg.Key
+			dMsg.Value = msg.Value
+			dMsg.Error = msg.Error
+			dMsg.ID = msg.ID
+			dMsg.print()
+
+			formattedMsg, err := json.Marshal(dMsg)
+			if err != nil {
+				fmt.Printf("Error marshalling message: %v\n", err)
+				return err
+			}
+			// Send message via requester
+			sent, err := c.req.SendMessage(formattedMsg)
+			if err != nil {
+				fmt.Printf("Error sending message: %v\n", err)
+				return fmt.Errorf("Error sending message: %v", err)
+			}
+			if sent <= 0 {
+				fmt.Printf("Error sending message: zero bytes sent\n")
+				return fmt.Errorf("Error sending message: zero bytes sent")
+			}
+			// Wait for an ack response
+			ack, err := c.req.RecvMessage(0)
+			// Print out the ack
+			fmt.Printf("Ack: %v\n", ack)
+		}
+	} else {
+		formattedMsg, err := json.Marshal(msg)
+		if err != nil {
+			fmt.Printf("Error marshalling message: %v\n", err)
+			return err
+		}
+		// Send message via requester
+		sent, err := c.req.SendMessage(formattedMsg)
+		if err != nil {
+			fmt.Printf("Error sending message: %v\n", err)
+			return fmt.Errorf("Error sending message: %v", err)
+		}
+		if sent <= 0 {
+			fmt.Printf("Error sending message: zero bytes sent\n")
+			return fmt.Errorf("Error sending message: zero bytes sent")
+		}
+		// Wait for an ack response
+		ack, err := c.req.RecvMessage(0)
+		// Print out the ack
+		fmt.Printf("Ack: %v\n", ack)
 	}
-	// Send message via requester
-	sent, err := c.req.SendMessage(formattedMsg)
-	if err != nil {
-		fmt.Printf("Error sending message: %v\n", err)
-		return fmt.Errorf("Error sending message: %v", err)
-	}
-	if sent <= 0 {
-		fmt.Printf("Error sending message: zero bytes sent\n")
-		return fmt.Errorf("Error sending message: zero bytes sent")
-	}
-	// Wait for an ack response
-	ack, err := c.req.RecvMessage(0)
-	// Print out the ack
-	fmt.Printf("Ack: %v\n", ack)
 	return nil
 }
 
@@ -198,6 +256,15 @@ func (c *Client) SendToBroker(msg Message) error {
 
 // Print prints a message
 func (m *Message) Print() {
+	formattedMsg, err := json.Marshal(*m)
+	if err != nil {
+		fmt.Printf("Error printing message: %v\n", err)
+	}
+	fmt.Printf("Message: %v\n", string(formattedMsg))
+}
+
+// Print prints a message
+func (m *dumbMessage) print() {
 	formattedMsg, err := json.Marshal(*m)
 	if err != nil {
 		fmt.Printf("Error printing message: %v\n", err)
