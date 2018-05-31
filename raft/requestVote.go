@@ -55,7 +55,8 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 
 	if s.votedFor == "" || s.votedFor == reqVoteRPC.CandidateId {
 		recent := uint(len(s.log) - 1)
-		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].Term || reqVoteRPC.LastLogIndex >= recent+1 {
+		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].Term ||
+			(reqVoteRPC.LastLogTerm == s.log[recent].Term && reqVoteRPC.LastLogIndex >= recent+1) {
 			reply_payload.VoteGranted = true
 			s.votedFor = reqVoteRPC.CandidateId
 		} else {

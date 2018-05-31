@@ -39,9 +39,12 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					if err != nil {
 						//handle error
 					}
-				case _ = <-sets:
-
-					//Sets handle - Joseph
+				case msg := <-sets:
+					err := s.sendReject(&msg)
+					if err != nil {
+						fmt.Printf("Follower Reject error: %v\n", err)
+					}
+					//Sets handle - Max
 				case msg := <-appendEntry:
 					timereset <- false // Triggers timer thread to restart timer
 					if msg.Type == "appendEntries" {
@@ -117,7 +120,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					}
 				case msg := <-sets:
 					s.handle_set(msg, state)
-					//Sets handle - Joseph
+					//Sets handle - Max
 				case msg := <-appendEntry:
 					if msg.Type == "appendEntries" {
 						am := appendMessage{}
@@ -206,4 +209,11 @@ func (s *Sailor) becomeFollower(term uint) {
 	s.votedFor = ""
 	s.numVotes = 0
 	s.leader = nil
+}
+
+func (s *Sailor) sendReject(msg *messages.Message) error {
+	rej := makeReply(s, msg, "getResponse") // TODO: NOT SURE IF TYPE SHOULD BE PASSED
+	rej.Key = "Leader"
+	rej.Value = "LEADER NodeName"
+	return s.client.SendToBroker(rej)
 }
