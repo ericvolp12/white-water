@@ -10,7 +10,7 @@ import (
 // Generats a set transaction and applies it to the raft log
 func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 	trans := storage.GenerateTransaction(storage.SetOp, msg.Key, msg.Value)
-	newEntry := entry{term: s.currentTerm, trans: trans, votes: 1, id: msg.ID}
+	newEntry := entry{Term: s.currentTerm, Trans: trans, votes: 1, Id: msg.ID}
 	s.log = append(s.log, newEntry)
 }
 
@@ -22,7 +22,7 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 		//fmt.Printf("i: %d\n", i)
 		s.log[i].votes += 1 // Increments the number of commits
 		if s.log[i].votes == majority {
-			_, err := state.ApplyTransaction(s.log[i].trans)
+			_, err := state.ApplyTransaction(s.log[i].Trans)
 			if err != nil {
 				fmt.Printf("Handle Commit ApplyTrans error: %v\n", err)
 				return err
@@ -30,9 +30,9 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 			zmqMsg := messages.Message{} //TODO confirm type string
 			zmqMsg.Type = "setResponse"
 			zmqMsg.Source = s.client.NodeName
-			zmqMsg.Key = s.log[i].trans.Key
-			zmqMsg.ID = s.log[i].id
-			zmqMsg.Value = s.log[i].trans.Value
+			zmqMsg.Key = s.log[i].Trans.Key
+			zmqMsg.ID = s.log[i].Id
+			zmqMsg.Value = s.log[i].Trans.Value
 			err = s.client.SendToBroker(zmqMsg)
 			if err != nil {
 				fmt.Printf("Handle commit SendToBroker error:%v\n", err)
@@ -50,7 +50,7 @@ func (s *Sailor) handle_prepare(PrepLower uint, PrepUpper uint) error {
 			continue
 		}
 		s.log[i-1].votes += 1
-		if s.log[i-1].votes > uint((len(s.client.Peers)+1)/2) && s.log[i-1].term == s.currentTerm {
+		if s.log[i-1].votes > uint((len(s.client.Peers)+1)/2) && s.log[i-1].Term == s.currentTerm {
 			for j := s.volatile.commitIndex + 1; j <= i; j++ {
 				s.log[j-1].votes = 1
 			}

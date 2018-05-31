@@ -26,7 +26,7 @@ func (s *Sailor) handle_timeout() error {
 	if last == 0 {
 		newmsg.LastLogTerm = 0
 	} else {
-		newmsg.LastLogTerm = s.log[last-1].term // The term of that entry index
+		newmsg.LastLogTerm = s.log[last-1].Term // The term of that entry index
 	}
 	// SEND newmsg REQUESTVOTE RPC BROADCAST
 	// TODO (MD) this can be makeReply w/ nil
@@ -55,7 +55,7 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 
 	if s.votedFor == "" || s.votedFor == reqVoteRPC.CandidateId {
 		recent := uint(len(s.log) - 1)
-		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].term || reqVoteRPC.LastLogIndex >= recent+1 {
+		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].Term || reqVoteRPC.LastLogIndex >= recent+1 {
 			reply_payload.VoteGranted = true
 			s.votedFor = reqVoteRPC.CandidateId
 		} else {

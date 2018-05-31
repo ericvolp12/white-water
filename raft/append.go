@@ -13,12 +13,12 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 	}
 	//Converted to 1 indexed
 	rep := appendReply{Term: s.currentTerm, Success: false}
-	if s.currentTerm > am.Term {
+	if s.currentTerm > am.Term { //TODO(JM): Update term
 		return rep, nil
 	}
 
 	//	fmt.Printf("prevLogIndex %d", am.PrevLogIndex)
-	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].term != am.PrevLogTerm)) {
+	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].Term != am.PrevLogTerm)) {
 		return rep, nil
 	}
 
@@ -28,6 +28,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 	rep.ComLower = s.volatile.commitIndex
 	s.log = append(s.log[:am.PrevLogIndex], am.Entries...)
 	if am.LeaderCommit > s.volatile.commitIndex {
+		fmt.Printf("%s, %+v, %+v, %+v\n", s.client.NodeName, am, s.log, s)
 		if int(am.LeaderCommit) <= len(s.log) {
 			s.volatile.commitIndex = am.LeaderCommit
 		} else {
@@ -35,7 +36,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		}
 		for s.volatile.lastApplied < s.volatile.commitIndex {
 			s.volatile.lastApplied += 1
-			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].trans)
+			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].Trans)
 		}
 
 	}
@@ -59,7 +60,7 @@ func sendAppendEntries(s *Sailor, peer string) error {
 		if len(s.log) == 1 || int(s.leader.nextIndex[peer])-2 <= 0 {
 			am.PrevLogTerm = 0
 		} else {
-			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
+			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].Term
 		}
 		am.Entries = s.log[s.leader.nextIndex[peer]-1:]
 	}

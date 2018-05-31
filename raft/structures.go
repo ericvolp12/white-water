@@ -8,10 +8,10 @@ import (
 type GetReply string
 
 type entry struct {
-	term  uint
-	trans storage.Transaction
-	votes uint
-	id    int
+	Term  uint
+	Trans storage.Transaction
+	votes uint //Maybe make this lower case?
+	Id    int
 }
 
 type leaderState struct {
