@@ -35,6 +35,7 @@ type Client struct {
 	sub      *zmq.Socket // Subscriber socket for the client
 	NodeName string      // Name of this node
 	Peers    []string    // Names of peers of this node
+	buffer   chan Message
 }
 
 // CreateClient defines a client based on input information
@@ -73,7 +74,7 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	}
 	// Create our client object
 	client := Client{req: requester, sub: sub, NodeName: nodeName, Peers: peers}
-
+	client.buffer = make(chan Message, 500)
 	// Send it back
 	return client
 }
@@ -87,6 +88,11 @@ func DeleteClient(c *Client) {
 }
 
 func (c *Client) ReceiveMessage() *Message {
+	select {
+	case msg := <-c.buffer:
+		return &msg
+	default:
+	}
 	msg, err := c.sub.RecvMessage(zmq.DONTWAIT)
 	if err != nil {
 		return nil

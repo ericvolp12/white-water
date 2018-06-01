@@ -11,23 +11,23 @@ import (
 )
 
 func (s *Sailor) MsgHandler(state *storage.State) {
-	s.timer = time.NewTimer(new_time())
+	s.timer = time.NewTimer(time.Second * 2)
 	for {
 		select {
 		case <-s.timer.C:
 			s.handle_timeout()
 			// TODO TIMER RESET
 		default:
-			msg := s.client.RecieveMessage()
+			msg := s.client.ReceiveMessage()
 			// get a message //TODO
 			if msg != nil {
 				switch s.state {
 				case leader:
-					s.handle_leader(msg, state)
+					s.handle_leader(*msg, state)
 				case follower:
-					s.handle_follower(msg, state)
+					s.handle_follower(*msg, state)
 				case candidate:
-					s.handle_candidate(msg, state)
+					s.handle_candidate(*msg, state)
 				}
 			}
 		}

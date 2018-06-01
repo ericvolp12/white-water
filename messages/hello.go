@@ -6,6 +6,10 @@ func (client *Client) HandleSingleHello() {
 	var msg *Message = nil
 	for msg == nil {
 		msg = client.ReceiveMessage()
+		if msg != nil && msg.Type != "hello" {
+			client.buffer <- *msg
+			msg = nil
+		}
 	}
 	if msg.Type != "hello" {
 		log.Fatal("NO HELLO MESSAGE!\n")

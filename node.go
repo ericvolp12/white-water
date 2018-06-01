@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	messages "github.com/ericvolp12/white-water/messages"
+	raft "github.com/ericvolp12/white-water/raft"
+	storage "github.com/ericvolp12/white-water/storage"
 )
 
 type arrayFlags []string
@@ -39,9 +41,10 @@ func main() {
 
 	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
-	//s := raft.InitializeSailor(&client)
+	s := raft.InitializeSailor(&client)
 
-	//state := storage.InitializeState()
+	state := storage.InitializeState()
 	client.HandleSingleHello()
+	s.MsgHandler(&state)
 
 }
