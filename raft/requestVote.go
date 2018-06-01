@@ -30,8 +30,6 @@ func (s *Sailor) handle_timeout() error {
 	} else {
 		newmsg.LastLogTerm = s.log[last-1].Term // The term of that entry index
 	}
-	// SEND newmsg REQUESTVOTE RPC BROADCAST
-	// TODO (MD) this can be makeReply w/ nil
 	zmqMsg := messages.Message{}
 	zmqMsg.Type = "requestVote"
 	zmqMsg.Source = s.client.NodeName
@@ -87,7 +85,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	if reply.Term < s.currentTerm { //Ignore old votes
 		return nil
 	}
-	// TODO Check term stuff? Maybe convert to follower
+
 	if reply.VoteGranted == true {
 		s.numVotes += 1
 	}

@@ -16,7 +16,7 @@ func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 }
 
 func (s *Sailor) setReject(msg *messages.Message) error {
-	rej := makeReply(s, msg, "setResponse") // TODO: NOT SURE IF TYPE SHOULD BE PASSED
+	rej := makeReply(s, msg, "setResponse")
 	if s.state != candidate {
 		rej.Error = "Current Leader is " + s.leaderId
 	} else {
@@ -39,7 +39,7 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 				fmt.Printf("Handle Commit ApplyTrans error: %v\n", err)
 				return err
 			}
-			zmqMsg := messages.Message{} //TODO confirm type string
+			zmqMsg := messages.Message{}
 			zmqMsg.Type = "setResponse"
 			zmqMsg.Source = s.client.NodeName
 			zmqMsg.Key = s.log[i].Trans.Key

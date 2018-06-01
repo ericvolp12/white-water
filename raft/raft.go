@@ -16,10 +16,8 @@ func (s *Sailor) MsgHandler(state *storage.State) {
 		select {
 		case <-s.timer.C:
 			s.handle_timeout()
-			// TODO TIMER RESET
 		default:
 			msg := s.client.ReceiveMessage()
-			// get a message //TODO
 			if msg != nil {
 				switch s.state {
 				case leader:
@@ -50,7 +48,7 @@ func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
 		}
 		//Sets handle - Max
 	case "appendEntries":
-		//timereset <- false // Triggers timer thread to restart timer //TODO FIX TIMER
+		//timereset <- false // Triggers timer thread to restart timer
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
 		val, err := handleAppendEntries(s, state, &am, msg.Source)
@@ -62,7 +60,7 @@ func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
 			fmt.Printf("follower, append entries: %s", err)
 		}
 	case "requestVote":
-		//restart timer //TODO FIX TIMER
+		//restart timer
 		err := s.handle_requestVote(msg)
 		if err != nil {
 			fmt.Printf("Follower handle_requestVote Error: %v\n", err)
@@ -122,7 +120,6 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 				fmt.Printf("Leader handle_requestVote Error:%v\n", err)
 			}
 		}
-		//TODO Should votereplies w/ larger Term be considered?
 		// Ignore vote replies if in leader state
 	case "votReply":
 	default:
@@ -133,7 +130,7 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
 	switch msg.Type {
 	case "appendEntries":
-		//timereset <- false // Triggers timer thread to restart timer //TODO FIX TIMER
+		//timereset <- false // Triggers timer thread to restart timer
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
 		val, err := handleAppendEntries(s, state, &am, msg.Source)
@@ -150,7 +147,6 @@ func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
 			fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
 		}
 	case "voteReply":
-		//TODO FIX TIMER
 		err := s.handle_voteReply(msg)
 		if err != nil {
 			fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
@@ -190,7 +186,7 @@ func makePayload(payload interface{}) string {
 	} else {
 		return base64.StdEncoding.EncodeToString(temp) //Encodes to string
 	}
-	return "" //TODO: Make it return an error
+	return ""
 }
 
 // Decodes Zmq message.Value payload to whatever struct is passed into the func

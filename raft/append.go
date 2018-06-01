@@ -1,8 +1,6 @@
 package raft
 
 import (
-	"fmt"
-
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
 )
@@ -13,7 +11,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, lea
 	}
 	//Converted to 1 indexed
 	rep := appendReply{Term: s.currentTerm, Success: false}
-	if s.currentTerm > am.Term { //TODO(JM): Update term
+	if s.currentTerm > am.Term {
 		return rep, nil
 	}
 	s.timer.Reset(new_time())
@@ -38,7 +36,6 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, lea
 		}
 		for s.volatile.lastApplied < s.volatile.commitIndex {
 			s.volatile.lastApplied += 1
-			//TODO(JM): Update log entry term to leader log entry
 			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].Trans)
 		}
 
@@ -76,7 +73,7 @@ func sendAppendEntries(s *Sailor, peer string) error {
 	am.LeaderCommit = s.volatile.commitIndex
 	ap := messages.Message{}
 	ap.Type = "appendEntries"
-	ap.ID = 0 //TODO(JM): Figure out what this should be?
+	ap.ID = 0
 	ap.Source = s.client.NodeName
 	ap.Value = makePayload(am)
 	return s.client.SendToPeer(ap, peer)
@@ -100,7 +97,6 @@ func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source 
 
 		s.leader.nextIndex[source] = ar.PrepUpper + 1
 		s.leader.matchIndex[source] = ar.PrepUpper
-		//s.handle_commit(ar.MatchIndex) // TODO MAKE SUER THIS WORKS
 	} else {
 		if ar.Term != s.currentTerm {
 			s.becomeFollower(ar.Term)
