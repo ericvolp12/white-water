@@ -21,7 +21,10 @@ func HelloHandler(client *Client) {
 }
 
 func (client *Client) HandleSingleHello() {
-	msg := client.ReceiveMessage()
+	var msg *Message = nil
+	for msg == nil {
+		msg = client.ReceiveMessage()
+	}
 	if msg.Type != "hello" {
 		log.Fatal("NO HELLO MESSAGE!\n")
 	}

@@ -3,7 +3,6 @@ package messages
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 
 	zmq "github.com/pebbe/zmq4"
@@ -169,7 +168,8 @@ func (c *Client) ReceiveMessages() {
 func (c *Client) ReceiveMessage() *Message {
 	msg, err := c.sub.RecvMessage(zmq.DONTWAIT)
 	if err != nil {
-		log.Fatal("Error receiveing message: %v\n", err)
+		return nil
+		//log.Fatal("Error receiveing message: %v\n", err)
 	}
 
 	dMsg := dumbMessage{}
