@@ -20,7 +20,7 @@ func HelloHandler(client *Client) {
 	}
 }
 
-func HandleSingleHello(client *Client) {
+func (client *Client) HandleSingleHello() {
 	msg := client.ReceiveMessage()
 	if msg.Type != "hello" {
 		log.Fatal("NO HELLO MESSAGE!\n")

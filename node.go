@@ -3,11 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"sync"
 
 	messages "github.com/ericvolp12/white-water/messages"
-	raft "github.com/ericvolp12/white-water/raft"
-	storage "github.com/ericvolp12/white-water/storage"
 )
 
 type arrayFlags []string
@@ -42,26 +39,10 @@ func main() {
 
 	client := messages.CreateClient(*pubEndpoint, *routerEndpoint, *nodeName, peers)
 
-	s := raft.InitializeSailor(&client)
+	//s := raft.InitializeSailor(&client)
 
-	state := storage.InitializeState()
-	gets, sets, requestVote, appendEntry, timereset, timeouts := initializeChannels(&client)
-
-	wg := sync.WaitGroup{}
-
-	go messages.HelloHandler(&client)
-	wg.Add(1)
-
-	go client.ReceiveMessages()
-	wg.Add(1)
-
-	go s.MsgHandler(gets, sets, requestVote, appendEntry, timereset, timeouts, &state)
-	wg.Add(1)
-
-	go s.Timer(timeouts, timereset)
-	wg.Add(1)
-
-	wg.Wait()
+	//state := storage.InitializeState()
+	client.HandleSingleHello()
 
 }
 
