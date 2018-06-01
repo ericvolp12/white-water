@@ -28,6 +28,17 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, lea
 	rep.PrepLower = am.PrevLogIndex + 1
 	rep.ComLower = s.volatile.commitIndex
 	//fmt.Printf("log len= %d, prevlogindex= %d\n", len(s.log), am.PrevLogIndex)
+	for i := am.PrevLogIndex; i < uint(len(s.log)); i++ {
+		if s.log[i].votes != 0 {
+			fail := messages.Message{}
+			fail.Source = s.client.NodeName
+			fail.Type = "setResponse"
+			fail.Error = "SET FAILED"
+			fail.ID = s.log[i].Id
+			fail.Key = s.log[i].Trans.Key
+			s.client.SendToBroker(fail)
+		}
+	}
 	s.log = append(s.log[:am.PrevLogIndex], am.Entries...)
 	if am.LeaderCommit > s.volatile.commitIndex {
 		//fmt.Printf("%s, %+v, %+v, %+v\n", s.client.NodeName, am, s.log, s)
@@ -86,6 +97,7 @@ func sendHeartbeats(s *Sailor) error {
 	for _, peer := range s.client.Peers {
 		err := sendAppendEntries(s, peer)
 		if err != nil {
+			fmt.Printf("dud print\n")
 			return err
 		}
 	}

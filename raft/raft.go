@@ -124,7 +124,7 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 		}
 		//TODO Should votereplies w/ larger Term be considered?
 		// Ignore vote replies if in leader state
-	case "votReply":
+	case "voteReply":
 	default:
 		fmt.Printf("handle_leader default message is %s\n", msg.Type)
 	}
