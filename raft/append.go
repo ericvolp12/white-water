@@ -7,7 +7,7 @@ import (
 	storage "github.com/ericvolp12/white-water/storage"
 )
 
-func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (appendReply, error) {
+func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, leaderId string) (appendReply, error) {
 	if (s.state != follower && am.Term == s.currentTerm) || am.Term > s.currentTerm {
 		s.becomeFollower(am.Term)
 	}
@@ -17,6 +17,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		return rep, nil
 	}
 	s.timer.Reset(new_time())
+	s.leaderId = leaderId
 	//	fmt.Printf("prevLogIndex %d", am.PrevLogIndex)
 	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].Term != am.PrevLogTerm)) {
 		return rep, nil

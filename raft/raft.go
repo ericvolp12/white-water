@@ -60,7 +60,7 @@ func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
 		//timereset <- false // Triggers timer thread to restart timer //TODO FIX TIMER
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
-		val, err := handleAppendEntries(s, state, &am)
+		val, err := handleAppendEntries(s, state, &am, msg.Source)
 		rep := makeReply(s, &msg, "appendReply")
 		rep.Value = makePayload(val)
 		//rep.Error = err.Error()
@@ -101,7 +101,7 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 	case "appendEntries":
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
-		val, err := handleAppendEntries(s, state, &am)
+		val, err := handleAppendEntries(s, state, &am, msg.Source)
 		if err != nil {
 			fmt.Printf("leader, append entries handle: %s", err)
 		}
@@ -142,7 +142,7 @@ func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
 		//timereset <- false // Triggers timer thread to restart timer //TODO FIX TIMER
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
-		val, err := handleAppendEntries(s, state, &am)
+		val, err := handleAppendEntries(s, state, &am, msg.Source)
 		rep := makeReply(s, &msg, "appendReply")
 		rep.Value = makePayload(val)
 		//rep.Error = err.Error()
@@ -218,11 +218,13 @@ func (s *Sailor) becomeFollower(term uint) {
 	s.votedFor = ""
 	s.numVotes = 0
 	s.leader = nil
+	s.timer.Reset(new_time())
+	s.leaderId = ""
 }
 
 func (s *Sailor) sendReject(msg *messages.Message) error {
 	rej := makeReply(s, msg, "getResponse") // TODO: NOT SURE IF TYPE SHOULD BE PASSED
-	rej.Key = "REJECT BY"
-	rej.Value = s.client.NodeName
+	rej.Key = "LEADER"
+	rej.Value = s.leaderId
 	return s.client.SendToBroker(rej)
 }
