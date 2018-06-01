@@ -1,7 +1,7 @@
 package raft
 
 import (
-	//"fmt"
+	"fmt"
 
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
@@ -18,8 +18,8 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, lea
 	}
 	s.timer.Reset(new_time())
 	s.leaderId = leaderId
-	//	fmt.Printf("prevLogIndex %d", am.PrevLogIndex)
-	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].Term != am.PrevLogTerm)) {
+	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) ||
+		(len(s.log) > 0 && s.log[am.PrevLogIndex-1].Term != am.PrevLogTerm)) {
 		return rep, nil
 	}
 
@@ -60,13 +60,13 @@ func sendAppendEntries(s *Sailor, peer string) error {
 		am.Entries = nil
 	} else {
 		//fmt.Printf("nextIndex of peer: %d, peer: %s\n", s.leader.nextIndex[peer], peer)
-		if len(s.log) == 1 || int(s.leader.nextIndex[peer])-2 <= 0 {
+		if int(s.leader.nextIndex[peer])-2 < 0 {
 			am.PrevLogTerm = 0
 		} else {
 			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].Term
 		}
 		//fmt.Printf("s.leader.nextIndex[%s]: %d, log: %+v\n", peer, s.leader.nextIndex[peer], s.log)
-		if s.leader.nextIndex[peer] >= uint(len(s.log)) {
+		if s.leader.nextIndex[peer] > uint(len(s.log)) {
 			am.Entries = []entry{}
 		} else {
 			am.Entries = s.log[s.leader.nextIndex[peer]-1:]
