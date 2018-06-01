@@ -3,14 +3,16 @@ package raft
 import (
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
+	"time"
 )
 
 type GetReply string
 
 type entry struct {
-	term  uint
-	trans storage.Transaction
-	votes uint
+	Term  uint
+	Trans storage.Transaction
+	votes uint //Maybe make this lower case?
+	Id    int
 }
 
 type leaderState struct {
@@ -42,6 +44,8 @@ type Sailor struct {
 	numVotes        int
 	volatile        *volatileState
 	leader          *leaderState
+	leaderId        string
+	timer           *time.Timer
 }
 
 type appendMessage struct { //type="appendEntries"

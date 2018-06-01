@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"sync"
-	"time"
 
 	messages "github.com/ericvolp12/white-water/messages"
 	raft "github.com/ericvolp12/white-water/raft"
@@ -46,40 +44,7 @@ func main() {
 	s := raft.InitializeSailor(&client)
 
 	state := storage.InitializeState()
-	gets, sets, requestVote, appendEntry, timeouts := initializeChannels(&client)
+	client.HandleSingleHello()
+	s.MsgHandler(&state)
 
-	wg := sync.WaitGroup{}
-
-	go messages.HelloHandler(&client)
-	wg.Add(1)
-
-	go client.ReceiveMessages()
-	wg.Add(1)
-
-	timer := time.NewTimer(time.Duration(5) * time.Second)
-	<-timer.C
-
-	go s.MsgHandler(gets, sets, requestVote, appendEntry, timeouts, &state)
-	wg.Add(1)
-
-	go s.Timer(timeouts)
-	wg.Add(1)
-
-	wg.Wait()
-
-}
-
-func initializeChannels(client *messages.Client) (gets, sets, requestVote, appendEntry chan messages.Message, timeouts chan bool) {
-	gets = make(chan messages.Message, 500)
-	sets = make(chan messages.Message, 500)
-	requestVote = make(chan messages.Message, 500)
-	appendEntry = make(chan messages.Message, 500)
-	timeouts = make(chan bool, 500)
-	client.Subscribe("get", &gets) // CHECK TYPE
-	client.Subscribe("set", &sets) // CHECK TYPE
-	client.Subscribe("requestVote", &requestVote)
-	client.Subscribe("voteReply", &requestVote)
-	client.Subscribe("appendEntries", &appendEntry)
-	client.Subscribe("appendReply", &appendEntry)
-	return
 }

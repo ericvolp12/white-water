@@ -5,7 +5,7 @@ import (
 	storage "github.com/ericvolp12/white-water/storage"
 )
 
-func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (appendReply, error) {
+func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, leaderId string) (appendReply, error) {
 	if (s.state != follower && am.Term == s.currentTerm) || am.Term > s.currentTerm {
 		s.becomeFollower(am.Term)
 	}
@@ -14,8 +14,10 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 	if s.currentTerm > am.Term {
 		return rep, nil
 	}
-
-	if len(s.log) <= int(am.PrevLogIndex-1) || s.log[am.PrevLogIndex-1].term != am.PrevLogTerm {
+	s.timer.Reset(new_time())
+	s.leaderId = leaderId
+	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) ||
+		(len(s.log) > 0 && s.log[am.PrevLogIndex-1].Term != am.PrevLogTerm)) {
 		return rep, nil
 	}
 
@@ -23,8 +25,21 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 
 	rep.PrepLower = am.PrevLogIndex + 1
 	rep.ComLower = s.volatile.commitIndex
+	//fmt.Printf("log len= %d, prevlogindex= %d\n", len(s.log), am.PrevLogIndex)
+	for i := am.PrevLogIndex; i < uint(len(s.log)); i++ {
+		if s.log[i].votes != 0 {
+			fail := messages.Message{}
+			fail.Source = s.client.NodeName
+			fail.Type = "setResponse"
+			fail.Error = "SET FAILED"
+			fail.ID = s.log[i].Id
+			fail.Key = s.log[i].Trans.Key
+			s.client.SendToBroker(fail)
+		}
+	}
 	s.log = append(s.log[:am.PrevLogIndex], am.Entries...)
 	if am.LeaderCommit > s.volatile.commitIndex {
+		//fmt.Printf("%s, %+v, %+v, %+v\n", s.client.NodeName, am, s.log, s)
 		if int(am.LeaderCommit) <= len(s.log) {
 			s.volatile.commitIndex = am.LeaderCommit
 		} else {
@@ -32,7 +47,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		}
 		for s.volatile.lastApplied < s.volatile.commitIndex {
 			s.volatile.lastApplied += 1
-			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].trans)
+			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].Trans)
 		}
 
 	}
@@ -47,12 +62,29 @@ func sendAppendEntries(s *Sailor, peer string) error {
 	am.Term = s.currentTerm
 	am.LeaderId = s.client.NodeName
 	am.PrevLogIndex = s.leader.nextIndex[peer] - 1
-	am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].term
-	am.Entries = s.log[s.leader.nextIndex[peer]-1:]
+	//fmt.Printf("Log: %+v, s.leader.nextIndex[peer]-2: %d", s.log, s.leader.nextIndex[peer]-2)
+	if len(s.log) == 0 {
+		am.PrevLogTerm = 0
+		am.Entries = nil
+	} else {
+		//fmt.Printf("nextIndex of peer: %d, peer: %s\n", s.leader.nextIndex[peer], peer)
+		if int(s.leader.nextIndex[peer])-2 < 0 {
+			am.PrevLogTerm = 0
+		} else {
+			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].Term
+		}
+		//fmt.Printf("s.leader.nextIndex[%s]: %d, log: %+v\n", peer, s.leader.nextIndex[peer], s.log)
+		if s.leader.nextIndex[peer] > uint(len(s.log)) {
+			am.Entries = []entry{}
+		} else {
+			am.Entries = s.log[s.leader.nextIndex[peer]-1:]
+		}
+	}
+
 	am.LeaderCommit = s.volatile.commitIndex
 	ap := messages.Message{}
 	ap.Type = "appendEntries"
-	ap.ID = 0 //TODO(JM): Figure out what this should be?
+	ap.ID = 0
 	ap.Source = s.client.NodeName
 	ap.Value = makePayload(am)
 	return s.client.SendToPeer(ap, peer)
@@ -62,6 +94,7 @@ func sendHeartbeats(s *Sailor) error {
 	for _, peer := range s.client.Peers {
 		err := sendAppendEntries(s, peer)
 		if err != nil {
+			fmt.Printf("dud print\n")
 			return err
 		}
 	}
@@ -76,7 +109,6 @@ func handleAppendReply(s *Sailor, state *storage.State, ar *appendReply, source 
 
 		s.leader.nextIndex[source] = ar.PrepUpper + 1
 		s.leader.matchIndex[source] = ar.PrepUpper
-		//s.handle_commit(ar.MatchIndex) // TODO MAKE SUER THIS WORKS
 	} else {
 		if ar.Term != s.currentTerm {
 			s.becomeFollower(ar.Term)

@@ -1,18 +1,22 @@
 package messages
 
-import "fmt"
+import "log"
 
-// helloHandler handles hello messages...
-func HelloHandler(client *Client) {
-	helloIncoming := make(chan Message, 500)
-
-	client.Subscribe("hello", &helloIncoming)
-
-	for range helloIncoming {
-		fmt.Printf("Hello Handler Firing...\n")
-		err := client.SendToBroker(Message{Type: "helloResponse", Source: client.NodeName})
-		if err != nil {
-			break
+func (client *Client) HandleSingleHello() {
+	var msg *Message = nil
+	for msg == nil {
+		msg = client.ReceiveMessage()
+		if msg != nil && msg.Type != "hello" {
+			client.buffer <- *msg
+			msg = nil
 		}
 	}
+	if msg.Type != "hello" {
+		log.Fatal("NO HELLO MESSAGE!\n")
+	}
+	err := client.SendToBroker(Message{Type: "helloResponse", Source: client.NodeName})
+	if err != nil {
+		log.Fatal("ERROR SENDING HELLO MESSAGE!\n")
+	}
+
 }

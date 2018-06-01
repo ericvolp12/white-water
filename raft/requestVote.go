@@ -8,10 +8,13 @@ import (
 
 func (s *Sailor) handle_timeout() error {
 	if s.state == leader {
+		s.timer.Reset(leaderReset())
 		return sendHeartbeats(s)
 	}
 	// ONLY BECOME CANDIDATE IF ALLOWED
+	s.timer.Reset(new_time())
 	s.state = candidate
+	fmt.Printf("Becoming candidate! %s\n", s.client.NodeName)
 	s.currentTerm += 1
 	s.votedFor = s.client.NodeName
 	s.numVotes = 1 // Votes for itself
@@ -25,10 +28,8 @@ func (s *Sailor) handle_timeout() error {
 	if last == 0 {
 		newmsg.LastLogTerm = 0
 	} else {
-		newmsg.LastLogTerm = s.log[last-1].term // The term of that entry index
+		newmsg.LastLogTerm = s.log[last-1].Term // The term of that entry index
 	}
-	// SEND newmsg REQUESTVOTE RPC BROADCAST
-	// TODO (MD) this can be makeReply w/ nil
 	zmqMsg := messages.Message{}
 	zmqMsg.Type = "requestVote"
 	zmqMsg.Source = s.client.NodeName
@@ -48,27 +49,30 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	}
 
 	reply_payload.Term = s.currentTerm
-	if s.state == candidate || reqVoteRPC.Term < s.currentTerm {
-		reply_payload.VoteGranted = false
-	}
-
 	if s.votedFor == "" || s.votedFor == reqVoteRPC.CandidateId {
 		recent := uint(len(s.log) - 1)
-		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].term || reqVoteRPC.LastLogIndex >= recent+1 {
+		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].Term ||
+			(reqVoteRPC.LastLogTerm == s.log[recent].Term && reqVoteRPC.LastLogIndex >= recent+1) {
 			reply_payload.VoteGranted = true
 			s.votedFor = reqVoteRPC.CandidateId
+			s.timer.Reset(new_time())
 		} else {
 			reply_payload.VoteGranted = false
 		}
 	} else {
 		reply_payload.VoteGranted = false
 	}
+
+	if s.state == candidate || reqVoteRPC.Term < s.currentTerm {
+		reply_payload.VoteGranted = false
+	}
+
 	zmq_msg := makeReply(s, &original_msg, "voteReply")
 	zmq_msg.Value = makePayload(reply_payload)
 	return s.client.SendToPeer(zmq_msg, original_msg.Source)
 }
 
-func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan bool) error {
+func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	reply := reply{}
 	err := getPayload(original_msg.Value, &reply)
 	if err != nil {
@@ -81,33 +85,29 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 	if reply.Term < s.currentTerm { //Ignore old votes
 		return nil
 	}
-	// TODO Check term stuff? Maybe convert to follower
+
 	if reply.VoteGranted == true {
 		s.numVotes += 1
 	}
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
+		fmt.Printf("Becoming leader! %s\n", s.client.NodeName)
+		s.timer.Reset(leaderReset())
 		s.state = leader
-		timeouts <- false // Triggers timer thread to restart timer as leader
-		newmsg := appendMessage{}
-		newmsg.Term = s.currentTerm
-		newmsg.LeaderId = s.client.NodeName
-
-		last := uint(len(s.log))
-		if last == 0 {
-			newmsg.PrevLogTerm = 0
-		} else {
-			newmsg.PrevLogTerm = s.log[last-1].term
+		s.leader = &leaderState{}
+		s.leader.nextIndex = make(map[string]uint)
+		for _, peer := range s.client.Peers {
+			s.leader.nextIndex[peer] = uint(len(s.log) + 1) //2
 		}
-		newmsg.PrevLogIndex = last
-		newmsg.Entries = nil
-		newmsg.LeaderCommit = s.volatile.commitIndex
+		s.leader.matchIndex = make(map[string]uint)
+		for _, peer := range s.client.Peers {
+			s.leader.matchIndex[peer] = 0
+		}
 
-		// TODO (MD) makeReply w/ nil dest
-		zmqmsg := messages.Message{}
-		zmqmsg.Type = "appendEntries"
-		zmqmsg.Source = s.client.NodeName
-		zmqmsg.Value = makePayload(newmsg)
-		return s.client.Broadcast(zmqmsg)
+		err := sendHeartbeats(s)
+		if err != nil {
+			fmt.Printf("Error in voteReply: %+v", err)
+		}
+
 	}
 	return nil
 }
