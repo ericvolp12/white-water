@@ -56,7 +56,7 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	if err != nil {
 		fmt.Printf("Error creating requester: %v\n", err)
 	}
-	fmt.Println("Requester client to connect to router...")
+	//	fmt.Println("Requester client to connect to router...")
 	// Connect requester to router
 	requester.Connect(routerEndpoint)
 	// Set identity to our node name so we can get messages
@@ -69,7 +69,7 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	if err != nil {
 		fmt.Printf("Error creating subscriber: %v\n", err)
 	}
-	fmt.Println("Subscriber client trying to connect to Pub Endpoint...")
+	//fmt.Println("Subscriber client trying to connect to Pub Endpoint...")
 	// Connect subscriber to publisher endpoint
 	sub.Connect(pubEndpoint)
 	// Linger set to 0 so we don't deadlock
@@ -108,12 +108,12 @@ func DeleteClient(c *Client) {
 
 // Subscribe takes a message type and a incoming channel and registers a new filter
 func (c *Client) Subscribe(mType string, incoming *chan Message) error {
-	fmt.Printf("MUX: Registering new filter for message type: '%v' on Client: %v\n", mType, c.NodeName)
+	//fmt.Printf("MUX: Registering new filter for message type: '%v' on Client: %v\n", mType, c.NodeName)
 	filter := Filter{Incoming: incoming, Type: mType}
 	c.filterMux.Lock()
 	c.filters = append(c.filters, filter)
 	c.filterMux.Unlock()
-	fmt.Printf("MUX: Filter registered!\n")
+	//fmt.Printf("MUX: Filter registered!\n")
 	return nil
 }
 
@@ -142,7 +142,7 @@ func (c *Client) ReceiveMessages() {
 		cMsg.Error = dMsg.Error
 		cMsg.ID = dMsg.ID
 
-		fmt.Println("Message received: %s, %s, %s", c.NodeName, cMsg.Source, cMsg.Type)
+		//fmt.Println("			Message received: %s, %s, %s", c.NodeName, cMsg.Source, cMsg.Type)
 
 		// Print the type of the message
 		//fmt.Printf("\tType: %v\n", cMsg.Type)
@@ -161,7 +161,7 @@ func (c *Client) ReceiveMessages() {
 		//fmt.Printf("MUX: Finished iterating!\n")
 
 	}
-	fmt.Printf("Ending message receive loop...\n")
+	//fmt.Printf("Ending message receive loop...\n")
 }
 
 // sendMessage sends a message on a client's requester
@@ -243,7 +243,7 @@ func (c *Client) sendMessage(msg Message) error {
 // Broadcast sends a message to all of a client's peers
 func (c *Client) Broadcast(msg Message) error {
 	msg.Destination = c.Peers
-	fmt.Printf("Broadcasting message to all peers... %s\n", c.NodeName)
+	//fmt.Printf("Broadcasting message to all peers... %s\n", c.NodeName)
 	return c.sendMessage(msg)
 }
 
@@ -264,7 +264,7 @@ func (c *Client) SendToPeers(msg Message, peers []string) error {
 // SendToBroker sends a message to the broker and no one else
 func (c *Client) SendToBroker(msg Message) error {
 	msg.Destination = []string{}
-	fmt.Printf("Sending message to broker...\n")
+	//fmt.Printf("Sending message to broker...\n")
 	msg.Print()
 	return c.sendMessage(msg)
 }

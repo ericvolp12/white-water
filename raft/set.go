@@ -12,6 +12,7 @@ func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 	trans := storage.GenerateTransaction(storage.SetOp, msg.Key, msg.Value)
 	newEntry := entry{Term: s.currentTerm, Trans: trans, votes: 1, Id: msg.ID}
 	s.log = append(s.log, newEntry)
+	fmt.Printf("		*************** LEADER SET%+v\n", newEntry)
 }
 
 // Checks for all commited transactions in an appendReply, majority commited get a broker reply
@@ -33,6 +34,7 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 			zmqMsg.Key = s.log[i].Trans.Key
 			zmqMsg.ID = s.log[i].Id
 			zmqMsg.Value = s.log[i].Trans.Value
+			fmt.Printf("HANDLED COMMIT:		")
 			err = s.client.SendToBroker(zmqMsg)
 			if err != nil {
 				fmt.Printf("Handle commit SendToBroker error:%v\n", err)
