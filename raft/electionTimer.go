@@ -1,12 +1,18 @@
 package raft
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
 
 func new_time() time.Duration {
 	return time.Duration((rand.Intn(150) + 150)) * time.Millisecond
+}
+
+func leaderReset() time.Duration {
+	return time.Duration(time.Duration(50) * time.Millisecond)
+
 }
 
 func (s *Sailor) Timer(TIMEOUT_SIGNAL chan bool, RESET chan bool) {

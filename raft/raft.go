@@ -4,171 +4,172 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
 )
 
-func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.Message, timereset, timeouts chan bool, state *storage.State) {
+func (s *Sailor) MsgHandler(state *storage.State) {
+	timer := time.NewTimer(new_time())
 	for {
 		select {
-		case msg := <-timeouts:
-			//timeouts message handle
-			if s.state != leader {
-				fmt.Printf("			%s timeout handler got %s", s.client.NodeName, msg)
-			}
-			err := s.handle_timeout()
-			timereset <- false // Triggers timer thread to restart timer
-			if err != nil {
-				fmt.Printf("handle_timeout error: %v\n", err)
-			}
-			//Max
+		case <-timer.C:
+			s.handle_timeout()
+			// TODO TIMER RESET
 		default:
-			switch s.state {
-			case follower:
-				select {
-				case msg := <-gets:
-					//TODO(JM): Decide where to put leader-notify
-					val, err := handleGetRequest(msg.Key, s, state)
-					rep := makeReply(s, &msg, "getResponse")
-					rep.Key = msg.Key
-					if err != nil {
-						rep.Error = err.Error()
-					} else {
-						rep.Value = val
-					}
-					err = s.client.SendToBroker(rep)
-					if err != nil {
-						//handle error
-					}
-				case msg := <-sets:
-					err := s.sendReject(&msg)
-					fmt.Printf("				SENDING REJECTION MESSAGE **************\n")
-					if err != nil {
-						fmt.Printf("Follower Reject error: %v\n", err)
-					}
-					//Sets handle - Max
-				case msg := <-appendEntry:
-					timereset <- false // Triggers timer thread to restart timer
-					if msg.Type == "appendEntries" {
-						am := appendMessage{}
-						getPayload(msg.Value, &am)
-						val, err := handleAppendEntries(s, state, &am)
-						rep := makeReply(s, &msg, "appendReply")
-						rep.Value = makePayload(val)
-						//rep.Error = err.Error()
-						err = s.client.SendToPeers(rep, rep.Destination)
-						if err != nil {
-							fmt.Printf("follower, append entries: %s", err)
-						}
-					}
-				case msg := <-requestVote:
-					timereset <- false //restart timer
-					if msg.Type == "requestVote" {
-						err := s.handle_requestVote(msg)
-						if err != nil {
-							fmt.Printf("Follower handle_requestVote Error: %v\n", err)
-						}
-					} // Don't respond to voteReply messages if follower
-				//Vote handle - Max
-				default:
+			msg := s.client.RecieveMessage()
+			// get a message //TODO
+			if msg != nil {
+				switch s.state {
+				case leader:
+					s.handle_leader(msg, state)
+				case follower:
+					s.handle_follower(msg, state)
+				case candidate:
+					s.handle_candidate(msg, state)
 				}
-
-			case candidate:
-				select {
-				case msg := <-appendEntry:
-					timereset <- false // Triggers timer thread to restart timer
-					if msg.Type == "appendEntries" {
-						am := appendMessage{}
-						getPayload(msg.Value, &am)
-						val, err := handleAppendEntries(s, state, &am)
-						rep := makeReply(s, &msg, "appendReply")
-						rep.Value = makePayload(val)
-						//rep.Error = err.Error()
-						err = s.client.SendToPeers(rep, rep.Destination)
-						if err != nil {
-							fmt.Printf("candidate, append entries: %s", err)
-						}
-					}
-				case msg := <-requestVote:
-					if msg.Type == "requestVote" {
-						err := s.handle_requestVote(msg)
-						if err != nil {
-							fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
-						}
-					} else { // Type == "voteReply"
-						err := s.handle_voteReply(msg, timereset)
-						if err != nil {
-							fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
-						}
-					}
-				case msg := <-sets:
-					err := s.sendReject(&msg)
-					if err != nil {
-						fmt.Printf("candidate set: %v\n", err)
-					}
-				default:
-
-					//VoteReply handle - Max
-				}
-			case leader:
-				select {
-				case msg := <-gets:
-					val, err := handleGetRequest(msg.Key, s, state)
-					rep := makeReply(s, &msg, "getResponse")
-					rep.Key = msg.Key
-					if err != nil {
-						rep.Error = err.Error()
-					} else {
-						rep.Value = val
-					}
-					err = s.client.SendToBroker(rep)
-					if err != nil {
-						//handle error
-					}
-				case msg := <-sets:
-					s.handle_set(msg, state)
-					//Sets handle - Max
-				case msg := <-appendEntry:
-					if msg.Type == "appendEntries" {
-						am := appendMessage{}
-						getPayload(msg.Value, &am)
-						val, err := handleAppendEntries(s, state, &am)
-						if err != nil {
-							fmt.Printf("leader, append entries handle: %s", err)
-						}
-						rep := makeReply(s, &msg, "appendReply")
-						rep.Value = makePayload(val)
-						//rep.Error = err.Error()
-						err = s.client.SendToPeers(rep, rep.Destination)
-						if err != nil {
-							fmt.Printf("leader, append entries: %s", err)
-						}
-					} else if msg.Type == "appendReply" {
-						ar := appendReply{}
-						getPayload(msg.Value, &ar)
-						err := handleAppendReply(s, state, &ar, msg.Source)
-						if err != nil {
-							fmt.Printf("leader, append reply handle: %s", err)
-						}
-					}
-					//AppendReply handle - Joseph
-				case msg := <-requestVote:
-					//Vote
-					if msg.Type == "requestVote" {
-						err := s.handle_requestVote(msg)
-						if err != nil {
-							fmt.Printf("Leader handle_requestVote Error:%v\n", err)
-						}
-					}
-					//TODO Should votereplies w/ larger Term be considered?
-					// Ignore vote replies if in leader state
-				default:
-
-				}
-			default:
 			}
 		}
+	}
+}
+
+func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
+	switch msg.Type {
+	case "get":
+		//TODO(JM): Decide where to put leader-notify
+		val, err := handleGetRequest(msg.Key, s, state)
+		rep := makeReply(s, &msg, "getResponse")
+		rep.Key = msg.Key
+		if err != nil {
+			rep.Error = err.Error()
+		} else {
+			rep.Value = val
+		}
+		err = s.client.SendToBroker(rep)
+		if err != nil {
+			//handle error
+		}
+	case "set":
+		err := s.sendReject(&msg)
+		if err != nil {
+			fmt.Printf("Follower Reject error: %v\n", err)
+		}
+		//Sets handle - Max
+	case "appendEntries":
+		//timereset <- false // Triggers timer thread to restart timer //TODO FIX TIMER
+		am := appendMessage{}
+		getPayload(msg.Value, &am)
+		val, err := handleAppendEntries(s, state, &am)
+		rep := makeReply(s, &msg, "appendReply")
+		rep.Value = makePayload(val)
+		//rep.Error = err.Error()
+		err = s.client.SendToPeers(rep, rep.Destination)
+		if err != nil {
+			fmt.Printf("follower, append entries: %s", err)
+		}
+	case "requestVote":
+		//restart timer //TODO FIX TIMER
+		err := s.handle_requestVote(msg)
+		if err != nil {
+			fmt.Printf("Follower handle_requestVote Error: %v\n", err)
+		} // Don't respond to voteReply messages if follower
+	//Vote handle - Max
+	default:
+		fmt.Printf("Handle_follower default case: Message is %s\n", msg.Type)
+	}
+}
+
+func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
+	switch msg.Type {
+	case "get":
+		val, err := handleGetRequest(msg.Key, s, state)
+		rep := makeReply(s, &msg, "getResponse")
+		rep.Key = msg.Key
+		if err != nil {
+			rep.Error = err.Error()
+		} else {
+			rep.Value = val
+		}
+		err = s.client.SendToBroker(rep)
+		if err != nil {
+			//handle error
+		}
+	case "set":
+		s.handle_set(msg, state)
+		//Sets handle - Max
+	case "appendEntries":
+		am := appendMessage{}
+		getPayload(msg.Value, &am)
+		val, err := handleAppendEntries(s, state, &am)
+		if err != nil {
+			fmt.Printf("leader, append entries handle: %s", err)
+		}
+		rep := makeReply(s, &msg, "appendReply")
+		rep.Value = makePayload(val)
+		//rep.Error = err.Error()
+		err = s.client.SendToPeers(rep, rep.Destination)
+		if err != nil {
+			fmt.Printf("leader, append entries: %s", err)
+		}
+
+	case "appendReply":
+		ar := appendReply{}
+		getPayload(msg.Value, &ar)
+		err := handleAppendReply(s, state, &ar, msg.Source)
+		if err != nil {
+			fmt.Printf("leader, append reply handle: %s", err)
+		}
+		//AppendReply handle - Joseph
+	case "requestVote":
+		//Vote
+		if msg.Type == "requestVote" {
+			err := s.handle_requestVote(msg)
+			if err != nil {
+				fmt.Printf("Leader handle_requestVote Error:%v\n", err)
+			}
+		}
+		//TODO Should votereplies w/ larger Term be considered?
+		// Ignore vote replies if in leader state
+	default:
+		fmt.Printf("handle_leader default message is %s\n", msg.Type)
+	}
+}
+
+func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
+	switch msg.Type {
+	case "appendEntries":
+		//timereset <- false // Triggers timer thread to restart timer //TODO FIX TIMER
+		am := appendMessage{}
+		getPayload(msg.Value, &am)
+		val, err := handleAppendEntries(s, state, &am)
+		rep := makeReply(s, &msg, "appendReply")
+		rep.Value = makePayload(val)
+		//rep.Error = err.Error()
+		err = s.client.SendToPeers(rep, rep.Destination)
+		if err != nil {
+			fmt.Printf("candidate, append entries: %s", err)
+		}
+	case "requestVote":
+		err := s.handle_requestVote(msg)
+		if err != nil {
+			fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
+		}
+	case "voteReply":
+		//TODO FIX TIMER
+		err := s.handle_voteReply(msg, timereset)
+		if err != nil {
+			fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
+		}
+	case "set":
+		err := s.sendReject(&msg)
+		if err != nil {
+			fmt.Printf("candidate set: %v\n", err)
+		}
+	default:
+		fmt.Printf("Default Handle_candidate message is %s\n", msg.Type)
+
+		//VoteReply handle - Max
 	}
 }
 

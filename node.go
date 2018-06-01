@@ -46,23 +46,6 @@ func main() {
 
 	state := storage.InitializeState()
 	gets, sets, requestVote, appendEntry, timereset, timeouts := initializeChannels(&client)
-
-	wg := sync.WaitGroup{}
-
-	go messages.HelloHandler(&client)
-	wg.Add(1)
-
-	go client.ReceiveMessages()
-	wg.Add(1)
-
-	go s.MsgHandler(gets, sets, requestVote, appendEntry, timereset, timeouts, &state)
-	wg.Add(1)
-
-	go s.Timer(timeouts, timereset)
-	wg.Add(1)
-
-	wg.Wait()
-
 }
 
 func initializeChannels(client *messages.Client) (gets, sets, requestVote, appendEntry chan messages.Message, timereset, timeouts chan bool) {
