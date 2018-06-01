@@ -38,14 +38,15 @@ type Filter struct {
 
 // Client defines a messenger client, they can send or receive messages
 type Client struct {
-	req       *zmq.Socket   // Requester socket for the client
-	sub       *zmq.Socket   // Subscriber socket for the client
-	outgoing  *chan Message // Channel for outgoing messages
-	incoming  *chan Message // Channel for incoming messages
-	filters   []Filter
-	filterMux *sync.Mutex
-	NodeName  string   // Name of this node
-	Peers     []string // Names of peers of this node
+	req         *zmq.Socket   // Requester socket for the client
+	sub         *zmq.Socket   // Subscriber socket for the client
+	outgoing    *chan Message // Channel for outgoing messages
+	incoming    *chan Message // Channel for incoming messages
+	filters     []Filter
+	filterMux   *sync.Mutex
+	NodeName    string   // Name of this node
+	Peers       []string // Names of peers of this node
+	readyToSend bool     //Set to true if we can start sending
 }
 
 // CreateClient defines a client based on input information
@@ -168,6 +169,11 @@ func (c *Client) ReceiveMessages() {
 func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
 	// Because the docs are wrong we gotta send many messages
+	for !c.readyToSend {
+		if msg.Type == "helloResponse" {
+			break
+		}
+	}
 	if len(msg.Destination) > 0 {
 		//fmt.Printf("Sending dumb messages, Borja be damned!\n")
 		for _, dest := range msg.Destination {
