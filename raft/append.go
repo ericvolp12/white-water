@@ -64,7 +64,12 @@ func sendAppendEntries(s *Sailor, peer string) error {
 		} else {
 			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].Term
 		}
-		am.Entries = s.log[s.leader.nextIndex[peer]-1:]
+		//fmt.Printf("s.leader.nextIndex[%s]: %d, log: %+v\n", peer, s.leader.nextIndex[peer], s.log)
+		if s.leader.nextIndex[peer] > uint(len(s.log)) {
+			am.Entries = []entry{}
+		} else {
+			am.Entries = s.log[s.leader.nextIndex[peer]-1:]
+		}
 	}
 
 	am.LeaderCommit = s.volatile.commitIndex

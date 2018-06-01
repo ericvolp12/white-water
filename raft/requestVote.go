@@ -97,7 +97,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 		s.leader = &leaderState{}
 		s.leader.nextIndex = make(map[string]uint)
 		for _, peer := range s.client.Peers {
-			s.leader.nextIndex[peer] = uint(len(s.log) + 2)
+			s.leader.nextIndex[peer] = uint(len(s.log) + 1) //2
 		}
 		s.leader.matchIndex = make(map[string]uint)
 		for _, peer := range s.client.Peers {
