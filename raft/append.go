@@ -36,6 +36,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 		}
 		for s.volatile.lastApplied < s.volatile.commitIndex {
 			s.volatile.lastApplied += 1
+			//TODO(JM): Update log entry term to leader log entry
 			state.ApplyTransaction(s.log[s.volatile.lastApplied-1].Trans)
 		}
 
