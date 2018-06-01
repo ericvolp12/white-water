@@ -14,7 +14,9 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 		select {
 		case msg := <-timeouts:
 			//timeouts message handle
-			fmt.Printf("%s timeout handler got %s", s.client.NodeName, msg)
+			if s.state != leader {
+				fmt.Printf("			%s timeout handler got %s", s.client.NodeName, msg)
+			}
 			err := s.handle_timeout()
 			timereset <- false // Triggers timer thread to restart timer
 			if err != nil {
@@ -39,9 +41,13 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					if err != nil {
 						//handle error
 					}
-				case _ = <-sets:
-
-					//Sets handle - Joseph
+				case msg := <-sets:
+					err := s.sendReject(&msg)
+					fmt.Printf("				SENDING REJECTION MESSAGE **************\n")
+					if err != nil {
+						fmt.Printf("Follower Reject error: %v\n", err)
+					}
+					//Sets handle - Max
 				case msg := <-appendEntry:
 					timereset <- false // Triggers timer thread to restart timer
 					if msg.Type == "appendEntries" {
@@ -96,6 +102,11 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 							fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 						}
 					}
+				case msg := <-sets:
+					err := s.sendReject(&msg)
+					if err != nil {
+						fmt.Printf("candidate set: %v\n", err)
+					}
 				default:
 
 					//VoteReply handle - Max
@@ -117,7 +128,7 @@ func (s *Sailor) MsgHandler(gets, sets, requestVote, appendEntry chan messages.M
 					}
 				case msg := <-sets:
 					s.handle_set(msg, state)
-					//Sets handle - Joseph
+					//Sets handle - Max
 				case msg := <-appendEntry:
 					if msg.Type == "appendEntries" {
 						am := appendMessage{}
@@ -206,4 +217,11 @@ func (s *Sailor) becomeFollower(term uint) {
 	s.votedFor = ""
 	s.numVotes = 0
 	s.leader = nil
+}
+
+func (s *Sailor) sendReject(msg *messages.Message) error {
+	rej := makeReply(s, msg, "getResponse") // TODO: NOT SURE IF TYPE SHOULD BE PASSED
+	rej.Key = "REJECT BY"
+	rej.Value = s.client.NodeName
+	return s.client.SendToBroker(rej)
 }
