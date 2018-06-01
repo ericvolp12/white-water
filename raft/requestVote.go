@@ -8,9 +8,11 @@ import (
 
 func (s *Sailor) handle_timeout() error {
 	if s.state == leader {
+		s.timer.Reset(leaderReset())
 		return sendHeartbeats(s)
 	}
 	// ONLY BECOME CANDIDATE IF ALLOWED
+	s.timer.Reset(new_time())
 	s.state = candidate
 	fmt.Printf("Becoming candidate! %s\n", s.client.NodeName)
 	s.currentTerm += 1
@@ -59,6 +61,7 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 			(reqVoteRPC.LastLogTerm == s.log[recent].Term && reqVoteRPC.LastLogIndex >= recent+1) {
 			reply_payload.VoteGranted = true
 			s.votedFor = reqVoteRPC.CandidateId
+			s.timer.Reset(new_time())
 		} else {
 			reply_payload.VoteGranted = false
 		}
@@ -70,7 +73,7 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	return s.client.SendToPeer(zmq_msg, original_msg.Source)
 }
 
-func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan bool) error {
+func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	reply := reply{}
 	err := getPayload(original_msg.Value, &reply)
 	if err != nil {
@@ -89,6 +92,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 	}
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) { // become leader, send empty heartbeat
 		fmt.Printf("Becoming leader! %s\n", s.client.NodeName)
+		s.timer.Reset(leaderReset())
 		s.state = leader
 		s.leader = &leaderState{}
 		s.leader.nextIndex = make(map[string]uint)
@@ -99,8 +103,6 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message, timeouts chan b
 		for _, peer := range s.client.Peers {
 			s.leader.matchIndex[peer] = 0
 		}
-		timeouts <- false // Triggers timer thread to restart timer as leader
-		timeouts <- false // Triggers the leader timer to start
 
 		err := sendHeartbeats(s)
 		if err != nil {

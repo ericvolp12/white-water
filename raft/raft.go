@@ -11,10 +11,10 @@ import (
 )
 
 func (s *Sailor) MsgHandler(state *storage.State) {
-	timer := time.NewTimer(new_time())
+	s.timer = time.NewTimer(new_time())
 	for {
 		select {
-		case <-timer.C:
+		case <-s.timer.C:
 			s.handle_timeout()
 			// TODO TIMER RESET
 		default:
@@ -157,7 +157,7 @@ func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
 		}
 	case "voteReply":
 		//TODO FIX TIMER
-		err := s.handle_voteReply(msg, timereset)
+		err := s.handle_voteReply(msg)
 		if err != nil {
 			fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 		}

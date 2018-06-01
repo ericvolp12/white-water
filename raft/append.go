@@ -16,7 +16,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage) (ap
 	if s.currentTerm > am.Term { //TODO(JM): Update term
 		return rep, nil
 	}
-
+	s.timer.Reset(new_time())
 	//	fmt.Printf("prevLogIndex %d", am.PrevLogIndex)
 	if am.PrevLogIndex != 0 && (len(s.log) <= int(am.PrevLogIndex-1) || (len(s.log) > 0 && s.log[am.PrevLogIndex-1].Term != am.PrevLogTerm)) {
 		return rep, nil
