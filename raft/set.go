@@ -15,6 +15,13 @@ func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 	fmt.Printf("		*************** LEADER SET%+v\n", newEntry)
 }
 
+func (s *Sailor) setReject(msg *messages.Message) error {
+	rej := makeReply(s, msg, "setResponse") // TODO: NOT SURE IF TYPE SHOULD BE PASSED
+	rej.Error = "Current Leader is " + s.leaderId
+	rej.Key = msg.Key
+	return s.client.SendToBroker(rej)
+}
+
 // Checks for all commited transactions in an appendReply, majority commited get a broker reply
 func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.State) error {
 	majority := uint((len(s.client.Peers) + 1) / 2)

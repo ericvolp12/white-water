@@ -39,21 +39,12 @@ func (s *Sailor) MsgHandler(state *storage.State) {
 func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
 	switch msg.Type {
 	case "get":
-		//TODO(JM): Decide where to put leader-notify
-		val, err := handleGetRequest(msg.Key, s, state)
-		rep := makeReply(s, &msg, "getResponse")
-		rep.Key = msg.Key
+		err := s.getAttempt(msg, state)
 		if err != nil {
-			rep.Error = err.Error()
-		} else {
-			rep.Value = val
-		}
-		err = s.client.SendToBroker(rep)
-		if err != nil {
-			//handle error
+			fmt.Printf("Candidate getAttempt error: %v\n", err)
 		}
 	case "set":
-		err := s.sendReject(&msg)
+		err := s.setReject(&msg)
 		if err != nil {
 			fmt.Printf("Follower Reject error: %v\n", err)
 		}
@@ -133,6 +124,7 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 		}
 		//TODO Should votereplies w/ larger Term be considered?
 		// Ignore vote replies if in leader state
+	case "votReply":
 	default:
 		fmt.Printf("handle_leader default message is %s\n", msg.Type)
 	}
@@ -164,9 +156,14 @@ func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
 			fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 		}
 	case "set":
-		err := s.sendReject(&msg)
+		err := s.setReject(&msg)
 		if err != nil {
 			fmt.Printf("candidate set: %v\n", err)
+		}
+	case "get":
+		err := s.getAttempt(msg, state)
+		if err != nil {
+			fmt.Printf("Candidate getAttempt error: %v\n", err)
 		}
 	default:
 		fmt.Printf("Default Handle_candidate message is %s\n", msg.Type)
@@ -222,11 +219,4 @@ func (s *Sailor) becomeFollower(term uint) {
 	s.leader = nil
 	s.timer.Reset(new_time())
 	s.leaderId = ""
-}
-
-func (s *Sailor) sendReject(msg *messages.Message) error {
-	rej := makeReply(s, msg, "getResponse") // TODO: NOT SURE IF TYPE SHOULD BE PASSED
-	rej.Key = "LEADER"
-	rej.Value = s.leaderId
-	return s.client.SendToBroker(rej)
 }
