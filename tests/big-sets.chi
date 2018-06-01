@@ -1,0 +1,168 @@
+set -n node-1 -k A -v 1
+set -n node-1 -k B -v 1
+set -n node-1 -k C -v 1
+set -n node-1 -k D -v 1
+set -n node-1 -k E -v 1
+set -n node-1 -k F -v 1
+set -n node-1 -k G -v 1
+set -n node-1 -k H -v 1
+set -n node-1 -k I -v 1
+set -n node-1 -k J -v 1
+set -n node-1 -k K -v 1
+set -n node-1 -k L -v 1
+set -n node-1 -k M -v 1
+set -n node-1 -k N -v 1
+set -n node-1 -k O -v 1
+set -n node-1 -k P -v 1
+set -n node-1 -k Q -v 1
+set -n node-1 -k R -v 1
+set -n node-1 -k S -v 1
+set -n node-1 -k T -v 1
+set -n node-1 -k U -v 1
+set -n node-1 -k V -v 1
+set -n node-1 -k W -v 1
+set -n node-1 -k X -v 1
+set -n node-1 -k Y -v 1
+set -n node-1 -k Z -v 1
+
+
+set -n node-1 -k A -v 101
+set -n node-1 -k B -v 101
+set -n node-1 -k C -v 101
+set -n node-1 -k D -v 101
+set -n node-1 -k E -v 101
+set -n node-1 -k F -v 101
+set -n node-1 -k G -v 101
+set -n node-1 -k H -v 101
+set -n node-1 -k I -v 101
+set -n node-1 -k J -v 101
+set -n node-1 -k K -v 101
+set -n node-1 -k L -v 101
+set -n node-1 -k M -v 101
+set -n node-1 -k N -v 101
+set -n node-1 -k O -v 101
+set -n node-1 -k P -v 101
+set -n node-1 -k Q -v 101
+set -n node-1 -k R -v 101
+set -n node-1 -k S -v 101
+set -n node-1 -k T -v 101
+set -n node-1 -k U -v 101
+set -n node-1 -k V -v 101
+set -n node-1 -k W -v 101
+set -n node-1 -k X -v 101
+set -n node-1 -k Y -v 101
+set -n node-1 -k Z -v 101
+
+
+set -n node-1 -k A -v final1
+set -n node-1 -k B -v final1
+set -n node-1 -k C -v final1
+set -n node-1 -k D -v final1
+set -n node-1 -k E -v final1
+set -n node-1 -k F -v final1
+set -n node-1 -k G -v final1
+set -n node-1 -k H -v final1
+set -n node-1 -k I -v final1
+set -n node-1 -k J -v final1
+set -n node-1 -k K -v final1
+set -n node-1 -k L -v final1
+set -n node-1 -k M -v final1
+set -n node-1 -k N -v final1
+set -n node-1 -k O -v final1
+set -n node-1 -k P -v final1
+set -n node-1 -k Q -v final1
+set -n node-1 -k R -v final1
+set -n node-1 -k S -v final1
+set -n node-1 -k T -v final1
+set -n node-1 -k U -v final1
+set -n node-1 -k V -v final1
+set -n node-1 -k W -v final1
+set -n node-1 -k X -v final1
+set -n node-1 -k Y -v final1
+set -n node-1 -k Z -v final1
+
+wait -t 5
+
+get -n node-1 -k A 
+get -n node-1 -k B 
+get -n node-1 -k C 
+get -n node-1 -k D 
+get -n node-1 -k E 
+get -n node-1 -k F 
+get -n node-1 -k G 
+get -n node-1 -k H 
+get -n node-1 -k I 
+get -n node-1 -k J 
+get -n node-1 -k K 
+get -n node-1 -k L 
+get -n node-1 -k M 
+get -n node-1 -k N 
+get -n node-1 -k O 
+get -n node-1 -k P 
+get -n node-1 -k Q 
+get -n node-1 -k R 
+get -n node-1 -k S 
+get -n node-1 -k T 
+get -n node-1 -k U 
+get -n node-1 -k V 
+get -n node-1 -k W 
+get -n node-1 -k X 
+get -n node-1 -k Y 
+get -n node-1 -k Z 
+
+get -n node-2 -k A 
+get -n node-2 -k B 
+get -n node-2 -k C 
+get -n node-2 -k D 
+get -n node-2 -k E 
+get -n node-2 -k F 
+get -n node-2 -k G 
+get -n node-2 -k H 
+get -n node-2 -k I 
+get -n node-2 -k J 
+get -n node-2 -k K 
+get -n node-2 -k L 
+get -n node-2 -k M 
+get -n node-2 -k N 
+get -n node-2 -k O 
+get -n node-2 -k P 
+get -n node-2 -k Q 
+get -n node-2 -k R 
+get -n node-2 -k S 
+get -n node-2 -k T 
+get -n node-2 -k U 
+get -n node-2 -k V 
+get -n node-2 -k W 
+get -n node-2 -k X 
+get -n node-2 -k Y 
+get -n node-2 -k Z
+
+get -n node-3 -k A 
+get -n node-3 -k B 
+get -n node-3 -k C 
+get -n node-3 -k D 
+get -n node-3 -k E 
+get -n node-3 -k F 
+get -n node-3 -k G 
+get -n node-3 -k H 
+get -n node-3 -k I 
+get -n node-3 -k J 
+get -n node-3 -k K 
+get -n node-3 -k L 
+get -n node-3 -k M 
+get -n node-3 -k N 
+get -n node-3 -k O 
+get -n node-3 -k P 
+get -n node-3 -k Q 
+get -n node-3 -k R 
+get -n node-3 -k S 
+get -n node-3 -k T 
+get -n node-3 -k U 
+get -n node-3 -k V 
+get -n node-3 -k W 
+get -n node-3 -k X 
+get -n node-3 -k Y 
+get -n node-3 -k Z
+
+
+
