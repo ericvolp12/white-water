@@ -51,10 +51,6 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	}
 
 	reply_payload.Term = s.currentTerm
-	if s.state == candidate || reqVoteRPC.Term < s.currentTerm {
-		reply_payload.VoteGranted = false
-	}
-
 	if s.votedFor == "" || s.votedFor == reqVoteRPC.CandidateId {
 		recent := uint(len(s.log) - 1)
 		if s.log == nil || reqVoteRPC.LastLogTerm > s.log[recent].Term ||
@@ -68,6 +64,11 @@ func (s *Sailor) handle_requestVote(original_msg messages.Message) error {
 	} else {
 		reply_payload.VoteGranted = false
 	}
+
+	if s.state == candidate || reqVoteRPC.Term < s.currentTerm {
+		reply_payload.VoteGranted = false
+	}
+
 	zmq_msg := makeReply(s, &original_msg, "voteReply")
 	zmq_msg.Value = makePayload(reply_payload)
 	return s.client.SendToPeer(zmq_msg, original_msg.Source)
