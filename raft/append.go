@@ -1,7 +1,7 @@
 package raft
 
 import (
-	//	"fmt"
+	//"fmt"
 
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
@@ -27,6 +27,7 @@ func handleAppendEntries(s *Sailor, state *storage.State, am *appendMessage, lea
 
 	rep.PrepLower = am.PrevLogIndex + 1
 	rep.ComLower = s.volatile.commitIndex
+	//fmt.Printf("log len= %d, prevlogindex= %d\n", len(s.log), am.PrevLogIndex)
 	s.log = append(s.log[:am.PrevLogIndex], am.Entries...)
 	if am.LeaderCommit > s.volatile.commitIndex {
 		//fmt.Printf("%s, %+v, %+v, %+v\n", s.client.NodeName, am, s.log, s)
@@ -65,7 +66,7 @@ func sendAppendEntries(s *Sailor, peer string) error {
 			am.PrevLogTerm = s.log[s.leader.nextIndex[peer]-2].Term
 		}
 		//fmt.Printf("s.leader.nextIndex[%s]: %d, log: %+v\n", peer, s.leader.nextIndex[peer], s.log)
-		if s.leader.nextIndex[peer] > uint(len(s.log)) {
+		if s.leader.nextIndex[peer] >= uint(len(s.log)) {
 			am.Entries = []entry{}
 		} else {
 			am.Entries = s.log[s.leader.nextIndex[peer]-1:]
