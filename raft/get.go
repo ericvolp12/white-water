@@ -16,7 +16,11 @@ func (s *Sailor) getAttempt(msg messages.Message, st *storage.State) error {
 
 	reply := makeReply(s, &msg, "getResponse")
 	if err != nil {
-		reply.Error = err.Error() + " : Current Leader is " + s.leaderId
+		if s.state == candidate {
+			reply.Error = err.Error() + " : In Election Cycle"
+		} else {
+			reply.Error = err.Error() + " : Current Leader is " + s.leaderId
+		}
 	} else {
 		reply.Error = msg.Key + "= " + item + " : Current Leader is " + s.leaderId
 	}
