@@ -1,6 +1,8 @@
 package raft
 
 import (
+	"fmt"
+
 	messages "github.com/ericvolp12/white-water/messages"
 	storage "github.com/ericvolp12/white-water/storage"
 )
