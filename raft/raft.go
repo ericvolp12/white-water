@@ -29,6 +29,8 @@ func (s *Sailor) MsgHandler(state *storage.State) {
 				case candidate:
 					s.handle_candidate(*msg, state)
 				}
+			} else {
+				time.Sleep(time.Millisecond * 5)
 			}
 		}
 	}
