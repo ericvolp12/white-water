@@ -3,6 +3,7 @@ package messages
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 
 	zmq "github.com/pebbe/zmq4"
@@ -163,6 +164,30 @@ func (c *Client) ReceiveMessages() {
 
 	}
 	//fmt.Printf("Ending message receive loop...\n")
+}
+
+func (c *Client) ReceiveMessage() *Message {
+	msg, err := c.sub.RecvMessage(zmq.DONTWAIT)
+	if err != nil {
+		log.Fatal("Error receiveing message: %v\n", err)
+	}
+
+	dMsg := dumbMessage{}
+	// Unwrap the message from JSON to Go
+	// Index 2 should be the json payload
+	json.Unmarshal([]byte(msg[2]), &dMsg)
+
+	cMsg := Message{}
+	cMsg.Destination = []string{dMsg.Destination}
+	cMsg.Type = dMsg.Type
+	cMsg.Source = dMsg.Source
+	cMsg.Value = dMsg.Value
+	cMsg.Key = dMsg.Key
+	cMsg.Value = dMsg.Value
+	cMsg.Error = dMsg.Error
+	cMsg.ID = dMsg.ID
+
+	return &cMsg
 }
 
 // sendMessage sends a message on a client's requester
