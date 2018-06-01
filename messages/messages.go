@@ -3,7 +3,6 @@ package messages
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	zmq "github.com/pebbe/zmq4"
 )
@@ -30,23 +29,12 @@ type dumbMessage struct {
 	Value       string `json:"value,omitempty"`
 }
 
-// Filter is a struct for associating incoming message types to callback channels
-type Filter struct {
-	Type     string        // The type of message to filter on
-	Incoming *chan Message // The Callback channel for arriving messages
-}
-
 // Client defines a messenger client, they can send or receive messages
 type Client struct {
-	req         *zmq.Socket   // Requester socket for the client
-	sub         *zmq.Socket   // Subscriber socket for the client
-	outgoing    *chan Message // Channel for outgoing messages
-	incoming    *chan Message // Channel for incoming messages
-	filters     []Filter
-	filterMux   *sync.Mutex
-	NodeName    string   // Name of this node
-	Peers       []string // Names of peers of this node
-	readyToSend bool     //Set to true if we can start sending
+	req      *zmq.Socket // Requester socket for the client
+	sub      *zmq.Socket // Subscriber socket for the client
+	NodeName string      // Name of this node
+	Peers    []string    // Names of peers of this node
 }
 
 // CreateClient defines a client based on input information
@@ -86,15 +74,6 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	// Create our client object
 	client := Client{req: requester, sub: sub, NodeName: nodeName, Peers: peers}
 
-	// Create the channels for incoming and outgoing messages
-	incoming := make(chan Message, 500) // Buffer size 500
-	outgoing := make(chan Message, 500) // Buffer size 500
-
-	client.incoming = &incoming
-	client.outgoing = &outgoing
-
-	client.filterMux = &sync.Mutex{}
-
 	// Send it back
 	return client
 }
@@ -105,64 +84,6 @@ func DeleteClient(c *Client) {
 	c.req.Close()
 	// Close the subscriber
 	c.sub.Close()
-}
-
-// Subscribe takes a message type and a incoming channel and registers a new filter
-func (c *Client) Subscribe(mType string, incoming *chan Message) error {
-	//fmt.Printf("MUX: Registering new filter for message type: '%v' on Client: %v\n", mType, c.NodeName)
-	filter := Filter{Incoming: incoming, Type: mType}
-	c.filterMux.Lock()
-	c.filters = append(c.filters, filter)
-	c.filterMux.Unlock()
-	//fmt.Printf("MUX: Filter registered!\n")
-	return nil
-}
-
-// ReceiveMessages starts a duty loop to handle ZeroMQ Messages on our subscriber
-func (c *Client) ReceiveMessages() {
-	fmt.Printf("Starting message receive loop...\n")
-	for {
-		msg, err := c.sub.RecvMessage(0)
-		if err != nil {
-			fmt.Printf("Error receiveing message: %v\n", err)
-			break
-		}
-
-		dMsg := dumbMessage{}
-		// Unwrap the message from JSON to Go
-		// Index 2 should be the json payload
-		json.Unmarshal([]byte(msg[2]), &dMsg)
-
-		cMsg := Message{}
-		cMsg.Destination = []string{dMsg.Destination}
-		cMsg.Type = dMsg.Type
-		cMsg.Source = dMsg.Source
-		cMsg.Value = dMsg.Value
-		cMsg.Key = dMsg.Key
-		cMsg.Value = dMsg.Value
-		cMsg.Error = dMsg.Error
-		cMsg.ID = dMsg.ID
-
-		//fmt.Println("			Message received: %s, %s, %s", c.NodeName, cMsg.Source, cMsg.Type)
-
-		// Print the type of the message
-		//fmt.Printf("\tType: %v\n", cMsg.Type)
-		//fmt.Printf("\tFull message: %v\n", msg[2])
-
-		*c.incoming <- cMsg
-
-		//fmt.Printf("MUX: Iterating over filters...\n")
-		c.filterMux.Lock()
-		for _, filter := range c.filters {
-			if cMsg.Type == filter.Type {
-				*filter.Incoming <- cMsg
-			}
-		}
-		c.filterMux.Unlock()
-		//fmt.Printf("MUX: Finished iterating!\n")
-
-	}
-	//fmt.Printf("Ending message receive loop...\n")
 }
 
 func (c *Client) ReceiveMessage() *Message {
@@ -194,11 +115,6 @@ func (c *Client) ReceiveMessage() *Message {
 func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
 	// Because the docs are wrong we gotta send many messages
-	for !c.readyToSend {
-		if msg.Type == "helloResponse" {
-			break
-		}
-	}
 	if len(msg.Destination) > 0 {
 		//fmt.Printf("Sending dumb messages, Borja be damned!\n")
 		for _, dest := range msg.Destination {

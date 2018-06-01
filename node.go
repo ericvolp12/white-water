@@ -45,19 +45,3 @@ func main() {
 	client.HandleSingleHello()
 
 }
-
-func initializeChannels(client *messages.Client) (gets, sets, requestVote, appendEntry chan messages.Message, timereset, timeouts chan bool) {
-	gets = make(chan messages.Message, 500)
-	sets = make(chan messages.Message, 500)
-	requestVote = make(chan messages.Message, 500)
-	appendEntry = make(chan messages.Message, 500)
-	timeouts = make(chan bool, 500)
-	timereset = make(chan bool, 500)
-	client.Subscribe("get", &gets) // CHECK TYPE
-	client.Subscribe("set", &sets) // CHECK TYPE
-	client.Subscribe("requestVote", &requestVote)
-	client.Subscribe("voteReply", &requestVote)
-	client.Subscribe("appendEntries", &appendEntry)
-	client.Subscribe("appendReply", &appendEntry)
-	return
-}
