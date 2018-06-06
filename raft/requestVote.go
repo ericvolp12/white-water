@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	messages "github.com/ericvolp12/white-water/messages"
+	storage "github.com/ericvolp12/white-water/storage"
 )
 
 // This function is called when a timeout has occured. If the node is currently
@@ -122,7 +123,7 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 	}
 	// If candidate has a majority of votes
 	if s.numVotes > ((len(s.client.Peers) + 1) / 2) {
-		fmt.Printf("Becoming leader! %s\n", s.client.NodeName)
+		fmt.Printf("Becoming leader! %s, %+v\n", s.client.NodeName, s.log)
 		s.timer.Reset(leaderReset()) // starting the heartbeat timer
 		s.state = leader
 		s.leader = &leaderState{} // Reseting the s.leader structure
@@ -134,6 +135,10 @@ func (s *Sailor) handle_voteReply(original_msg messages.Message) error {
 		for _, peer := range s.client.Peers {
 			s.leader.matchIndex[peer] = 0
 		}
+
+		trans := storage.GenerateTransaction(storage.GetOp, "no-op", "")
+		newEntry := entry{Term: s.currentTerm, Trans: trans, votes: 1, Id: -1}
+		s.log = append(s.log, newEntry)
 
 		err := sendHeartbeats(s)
 		if err != nil {

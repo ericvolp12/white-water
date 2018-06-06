@@ -33,7 +33,7 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 	for i := int(lowCommit); i <= int(upperCommit)-1; i++ {
 		//fmt.Printf("i: %d\n", i)
 		s.log[i].votes += 1 // Increments the number of commits
-		if s.log[i].votes == majority {
+		if s.log[i].votes == majority && s.log[i].Id != -1 {
 			_, err := state.ApplyTransaction(s.log[i].Trans)
 			if err != nil {
 				fmt.Printf("Handle Commit ApplyTrans error: %v\n", err)
