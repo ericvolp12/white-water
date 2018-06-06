@@ -1,0 +1,33 @@
+start -n node-1
+start -n node-2
+start -n node-3
+start -n node-4
+
+wait -t 2
+
+set -n node-1 -k A -v 1
+set -n node-1 -k B -v 2
+set -n node-1 -k C -v 3
+set -n node-1 -k D -v 4
+
+wait -t 2
+
+fail_node -n node-1
+
+wait -t 5
+
+get -n node-2 -k A
+get -n node-2 -k B
+get -n node-2 -k C
+get -n node-2 -k D
+set -n node-2 -k E -v 5
+
+recover_node -n node-1
+
+wait -t 5
+
+fail_node -n node-2
+
+wait -t 5
+
+get -n node-1 -k E
