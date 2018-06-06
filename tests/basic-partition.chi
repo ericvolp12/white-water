@@ -1,0 +1,31 @@
+start -n node-1
+start -n node-2
+start -n node-3
+start -n node-4
+
+wait -t 2
+
+set -n node-1 -k a -v 42
+
+wait -t 1
+
+create_partition -n part -p node-1,node-2 -2 node-3,node-4
+
+wait -t 1
+
+set -n node-1 -k b -v 43
+
+wait -t 1
+
+remove_partition -n part
+
+wait -t 2
+
+get -n node-1 -k b
+get -n node-2 -k b
+get -n node-3 -k b
+get -n node-4 -k b
+
+wait -t 2
+
+quit
