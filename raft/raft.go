@@ -1,5 +1,7 @@
 package raft
 
+// raft.go contains the very core of the raft logic, along with some helper functions
+
 import (
 	"encoding/base64"
 	"encoding/json"
@@ -10,15 +12,21 @@ import (
 	storage "github.com/ericvolp12/white-water/storage"
 )
 
+// MsgHandler is the main function of our Raft nodes.
+// It takes a sailor struct and a pointer to the state machine.
+// It will loop over all incoming messages to determine where to process them
+// and shunts them off appropriately.
+// It also handles election timeout processing.
 func (s *Sailor) MsgHandler(state *storage.State) {
-	s.timer = time.NewTimer(time.Second * 2)
+	s.timer = time.NewTimer(time.Second * 2) // Make the first delay longer so other nodes can start
 	for {
+		// Choose the timeout if it exists, otherwise try and get a message from the network
 		select {
 		case <-s.timer.C:
 			s.handle_timeout()
 		default:
 			msg := s.client.ReceiveMessage()
-			if msg != nil {
+			if msg != nil { // We got a message, send it to the correct handler
 				switch s.state {
 				case leader:
 					s.handle_leader(*msg, state)
@@ -27,28 +35,29 @@ func (s *Sailor) MsgHandler(state *storage.State) {
 				case candidate:
 					s.handle_candidate(*msg, state)
 				}
-			} else {
-				time.Sleep(time.Millisecond * 5)
+			} else { // We didn't get a message
+				time.Sleep(time.Millisecond * 5) // Sleep to reduce CPU load
 			}
 		}
 	}
 }
 
+// handle_follower is a helper function that contains the logic
+// of what to do with a message when we are a follower.
+// It takes a sailor, the state machine, and a message.
 func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
 	switch msg.Type {
-	case "get":
+	case "get": // It's a get messagae
 		err := s.getAttempt(msg, state)
 		if err != nil {
 			fmt.Printf("Candidate getAttempt error: %v\n", err)
 		}
-	case "set":
+	case "set": // It's a set message
 		err := s.setReject(&msg)
 		if err != nil {
 			fmt.Printf("Follower Reject error: %v\n", err)
 		}
-		//Sets handle - Max
-	case "appendEntries":
-		//timereset <- false // Triggers timer thread to restart timer
+	case "appendEntries": // It's an appendEntires RPC
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
 		val, err := handleAppendEntries(s, state, &am, msg.Source)
@@ -59,21 +68,22 @@ func (s *Sailor) handle_follower(msg messages.Message, state *storage.State) {
 		if err != nil {
 			fmt.Printf("follower, append entries: %s", err)
 		}
-	case "requestVote":
-		//restart timer
+	case "requestVote": // It's a requestVote RPC
 		err := s.handle_requestVote(msg)
 		if err != nil {
 			fmt.Printf("Follower handle_requestVote Error: %v\n", err)
-		} // Don't respond to voteReply messages if follower
-	//Vote handle - Max
-	default:
+		}
+	default: // Not a recognize message type.
 		fmt.Printf("Handle_follower default case: Message is %s\n", msg.Type)
 	}
 }
 
+// handle_leader is a helper function that contains the logic
+// of what to do with a message when we are a leader.
+// It takes a sailor, the state machine, and a message.
 func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 	switch msg.Type {
-	case "get":
+	case "get": // It's a get request
 		val, err := handleGetRequest(msg.Key, s, state)
 		rep := makeReply(s, &msg, "getResponse")
 		rep.Key = msg.Key
@@ -84,12 +94,11 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 		}
 		err = s.client.SendToBroker(rep)
 		if err != nil {
-			//handle error
+			//handle error, we've never seen one
 		}
-	case "set":
+	case "set": // It's a set request
 		s.handle_set(msg, state)
-		//Sets handle - Max
-	case "appendEntries":
+	case "appendEntries": // It's an appendEntries RPC
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
 		val, err := handleAppendEntries(s, state, &am, msg.Source)
@@ -98,76 +107,73 @@ func (s *Sailor) handle_leader(msg messages.Message, state *storage.State) {
 		}
 		rep := makeReply(s, &msg, "appendReply")
 		rep.Value = makePayload(val)
-		//rep.Error = err.Error()
 		err = s.client.SendToPeers(rep, rep.Destination)
 		if err != nil {
 			fmt.Printf("leader, append entries: %s", err)
 		}
 
-	case "appendReply":
+	case "appendReply": // It's a reply to an appendEntries RPC
 		ar := appendReply{}
 		getPayload(msg.Value, &ar)
 		err := handleAppendReply(s, state, &ar, msg.Source)
 		if err != nil {
 			fmt.Printf("leader, append reply handle: %s", err)
 		}
-		//AppendReply handle - Joseph
-	case "requestVote":
-		//Vote
+	case "requestVote": // It's a requestVote RPC
 		if msg.Type == "requestVote" {
 			err := s.handle_requestVote(msg)
 			if err != nil {
 				fmt.Printf("Leader handle_requestVote Error:%v\n", err)
 			}
 		}
-		// Ignore vote replies if in leader state
-	case "voteReply":
+	case "voteReply": // Ignore vote replies if in leader state
 	default:
 		fmt.Printf("handle_leader default message is %s\n", msg.Type)
 	}
 }
 
+// handle_candidate is a helper function that contains the logic
+// of what to do with a message when we are a candidate.
+// It takes a sailor, the state machine, and a message.
 func (s *Sailor) handle_candidate(msg messages.Message, state *storage.State) {
 	switch msg.Type {
-	case "appendEntries":
-		//timereset <- false // Triggers timer thread to restart timer
+	case "appendEntries": // It's an appendEntries RPC
 		am := appendMessage{}
 		getPayload(msg.Value, &am)
 		val, err := handleAppendEntries(s, state, &am, msg.Source)
 		rep := makeReply(s, &msg, "appendReply")
 		rep.Value = makePayload(val)
-		//rep.Error = err.Error()
 		err = s.client.SendToPeers(rep, rep.Destination)
 		if err != nil {
 			fmt.Printf("candidate, append entries: %s", err)
 		}
-	case "requestVote":
+	case "requestVote": // It's a requestVote RPC
 		err := s.handle_requestVote(msg)
 		if err != nil {
 			fmt.Printf("Candidate handle_requestVote Error: %v\n", err)
 		}
-	case "voteReply":
+	case "voteReply": // It's a requestVote RPC reply
 		err := s.handle_voteReply(msg)
 		if err != nil {
 			fmt.Printf("Candidate handle_voteReply Error: %v\n", err)
 		}
-	case "set":
+	case "set": // It's a set request
 		err := s.setReject(&msg)
 		if err != nil {
 			fmt.Printf("candidate set: %v\n", err)
 		}
-	case "get":
+	case "get": // It's a get rerquest
 		err := s.getAttempt(msg, state)
 		if err != nil {
 			fmt.Printf("Candidate getAttempt error: %v\n", err)
 		}
 	default:
 		fmt.Printf("Default Handle_candidate message is %s\n", msg.Type)
-
-		//VoteReply handle - Max
 	}
 }
 
+// makeReply is a helper function that constructs a partially
+// completed reply from the original request sent
 func makeReply(s *Sailor, msg *messages.Message, typestr string) messages.Message {
 	rep := messages.Message{}
 	rep.Type = typestr
@@ -177,7 +183,7 @@ func makeReply(s *Sailor, msg *messages.Message, typestr string) messages.Messag
 	return rep
 }
 
-// Encodes different Raft message RPC structs into strings for ZMQ type messages
+// makePayload encodes different Raft message RPC structs into strings for ZMQ type messages
 func makePayload(payload interface{}) string {
 	temp, err := json.Marshal(payload) // Encodes to slice of bytes
 	if err != nil {
@@ -189,7 +195,7 @@ func makePayload(payload interface{}) string {
 	return ""
 }
 
-// Decodes Zmq message.Value payload to whatever struct is passed into the func
+// getPayload decodes Zmq message.Value payload to whatever struct is passed into the func
 func getPayload(value string, payload interface{}) error {
 	temp, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
@@ -205,7 +211,7 @@ func getPayload(value string, payload interface{}) error {
 	return nil
 }
 
-// Converts Sailor into follower state (Normally if msg.Term > s.currentTerm)
+// becomeFollower converts Sailor into follower state (Normally if msg.Term > s.currentTerm)
 func (s *Sailor) becomeFollower(term uint) {
 	fmt.Printf("Becoming follower! %s\n", s.client.NodeName)
 	s.currentTerm = term
