@@ -9,7 +9,7 @@ wait -t 5
 set -n node-1 -k a -v 42
 wait -t 1
 
-set -n node-1 -k status -v "========== Creating Partition: {1,2} {3,4,5} =========="
+set -n node-1 -k status -v " ========== Creating Partition: {1,2} {3,4,5} =========="
 wait -t 1
 
 create_partition -n part -p node-1,node-2 -2 node-3,node-4,node-5
@@ -33,13 +33,14 @@ set -n node-1 -k shouldFail -v fail1
 set -n node-1 -k shouldFail2 -v fail2
 set -n node-1 -k shouldFail3 -v fail3
 
-wait -t 2
+wait -t 4
+set -n node-3 -k status -v " =============== Removing Partition ==============="
+wait -t 4
 
 remove_partition -n part
 
-wait -t 1
-set -n node-3 -k status -v "=============== Removing Partition ==============="
-wait -t 1
+wait -t 2
+
 
 get -n node-1 -k a 
 get -n node-2 -k a 

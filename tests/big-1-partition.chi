@@ -6,7 +6,7 @@ start -n node-5
 
 wait -t 5
 
-set -n node-1 -k status -v "========== Creating Partition: {1,2,3} {4,5} =========="
+set -n node-1 -k TEST_STATUS -v " ========== Creating Partition: {1,2,3} {4,5} =========="
 
 wait -t 2
 
@@ -41,7 +41,7 @@ get -n node-5 -k d
 
 remove_partition -n part
 wait -t 1
-set -n node-1 -k status -v "========== Removing Partition =========="
+set -n node-1 -k TEST_STATUS -v " ========== Removing Partition =========="
 wait -t 1
 
 get -n node-1 -k b
@@ -63,6 +63,5 @@ get -n node-4 -k d
 get -n node-5 -k d 
 
 wait -t 2
-set -n node-1 -k status -v "***** Test Done *****"
 
 quit
