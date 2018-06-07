@@ -3,72 +3,77 @@ start -n node-2
 start -n node-3
 start -n node-4
 start -n node-5
-start -n node-6
-start -n node-7
 
 wait -t 5
 
-fail_node -n node-7
 
 set -n node-1 -k a -v 42
-fail_node -n node-6
 
+set -n node-1 -k TEST_STATUS -v "========== FAILING node-4 =========="
+wait -t 2
+
+fail_node -n node-4
 wait -t 2
 
 set -n node-1 -k b -v 43
 set -n node-1 -k c -v 44
 set -n node-1 -k d -v 45
 
-set -n node-1 -k e -v 43
-set -n node-1 -k f -v 44
-set -n node-1 -k g -v 45
+set -n node-1 -k e -v 46
+set -n node-1 -k f -v 47
+set -n node-1 -k g -v 48
+
+set -n node-1 -k TEST_STATUS -v " ========== FAILING node-1 =========="
+wait -t 1
 
 fail_node -n node-1
 
-wait -t 10
-
-set -n node-4 -k b -v 1000043
-set -n node-4 -k c -v 1000044
-set -n node-4 -k d -v 1000045
+wait -t 20
 
 set -n node-5 -k b -v 1000043
 set -n node-5 -k c -v 1000044
 set -n node-5 -k d -v 1000045
+wait -t 2
 
 set -n node-2 -k b -v 1000043
 set -n node-2 -k c -v 1000044
 set -n node-2 -k d -v 1000045
+wait -t 2
 
 set -n node-3 -k b -v 1000043
 set -n node-3 -k c -v 1000044
 set -n node-3 -k d -v 1000045
+wait -t 2
 
+wait -t 5
+
+set -n node-2 -k TEST_STATUS -v " ========== RECOVERING node-4 ========="
 wait -t 1
 
-get -n node-1 -k b
-get -n node-2 -k b
-get -n node-3 -k b
+recover_node -n node-4
+wait -t 2
+
+get -n node-4 -k a
 get -n node-4 -k b
-get -n node-5 -k b
-get -n node-6 -k b
-get -n node-7 -k b
+get -n node-4 -k c
+get -n node-4 -k d
+wait -t 2
 
-recover_node -n node-6
-
-wait -t 1
-get -n node-6 -k b
-get -n node-6 -k c
-get -n node-6 -k d
-
-recover_node -n node-1
+get -n node-1 -k a
 get -n node-1 -k b
 get -n node-1 -k c
 get -n node-1 -k d
 
-recover_node -n node-7
-get -n node-7 -k b
-get -n node-7 -k c
-get -n node-7 -k d
+set -n node-3 -k TEST_STATUS -v " ========== RECOVERING node-1 ========="
+wait -t 1
+
+recover_node -n node-1
+wait -t 2
+
+get -n node-1 -k a
+get -n node-1 -k b
+get -n node-1 -k c
+get -n node-1 -k d
 
 wait -t 4
 quit
