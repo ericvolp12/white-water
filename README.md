@@ -31,7 +31,7 @@ Note that this requires pulling from GitHub and thus we have to make our project
 
 Once you've built the source, you can stay in the directory that contains `node.go` and run `chistributed` as you would normally.
 
-Our tests are inside `tests/` and can be run with the `--run` flag in chistributed.
+Our tests are inside `scripts/` and can be run with the `--run` flag in chistributed.
 
 For tests with 5 nodes, please include a `--config-file scripts/five-nodes.conf` flag when running chistributed.
 
