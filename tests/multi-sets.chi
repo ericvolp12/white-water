@@ -1,3 +1,10 @@
+start -n node-1
+start -n node-2
+start -n node-3
+start -n node-4
+
+wait -t 10
+
 set -n node-1 -k ello -v 37
 set -n node-3 -k wow -v 55
 set -n node-2 -k yo -v 12
@@ -5,3 +12,6 @@ wait -t 5
 get -n node-3 -k ello
 get -n node-2 -k wow
 get -n node-1 -k yo
+
+wait -t 5
+quit

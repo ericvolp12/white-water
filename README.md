@@ -17,7 +17,7 @@ White Water is separated into 3 modules
     - `storage.go` - Contains structures for managing the state of the node and logs. Implements the get and set interfaces for updating the local model after a consensus round. Allows leaders to get local values from the model.
 
 ## Running White Water
-To run White Water, first ensure you have Golang installed, we recommend Go 1.8+.
+To run White Water, first ensure you have Golang installed and correctly configured, we recommend Go 1.8+.
 
 Next, ensure you have the ZeroMQ dependencies by installing `ZeroMQ version 4.0.1 or above. To use CURVE security in versions prior to 4.2, ZeroMQ must be installed with libsodium enabled.`
 
@@ -70,4 +70,6 @@ chistributed --config-file scripts/five-nodes.conf --run scripts/big-2-partition
 Tests outputs from the creators of White Water, are in impl/scripts
 and are of the form testname-sample.out
 
-These tests were run on UChicago CS VM 201718.3 (Ubuntu 16.04.3 LTS)
+These tests were run on two machines.
+Machine 1: UChicago CS VM 201718.3 (Ubuntu 16.04.3 LTS)
+Machine 2: Dell Precision 5510, 32GB of RAM, Intel(R) Xeon(R) CPU E3-1505M v5 @ 2.80GHz
