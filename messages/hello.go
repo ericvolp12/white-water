@@ -2,8 +2,9 @@ package messages
 
 import "log"
 
+// HandleSingleHello is a handler for hello messages to let broker know node is alive
 func (client *Client) HandleSingleHello() {
-	var msg *Message = nil
+	var msg *Message
 	for msg == nil {
 		msg = client.ReceiveMessage()
 		if msg != nil && msg.Type != "hello" {

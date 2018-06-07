@@ -11,10 +11,12 @@ import (
 
 type arrayFlags []string
 
+// Just for debugging the peers object
 func (i *arrayFlags) String() string {
 	return "It's an array of peers"
 }
 
+// Used to set multiple peers in the CLI
 func (i *arrayFlags) Set(value string) error {
 	*i = append(*i, value)
 	return nil

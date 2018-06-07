@@ -63,7 +63,7 @@ func (s *State) GetWithStamp(key string) (ValueStamp, error) {
 	return s.getLocalWithStamp(key)
 }
 
-// Get gets a string from the cluster without the timestamp
+// Get gets a string from the local machine without the timestamp
 func (s *State) Get(key string) (string, error) {
 	return s.getLocal(key)
 }
@@ -73,7 +73,7 @@ func (s *State) Set(key string, value string) error {
 	return s.setLocal(key, value)
 }
 
-// Initialize starts up the message listeners for the interface
+// InitializeState starts up the message listeners for the interface
 func InitializeState() State {
 	state := State{}
 
@@ -81,7 +81,7 @@ func InitializeState() State {
 	return state
 }
 
-// Apply transaction takes a transaction struct and
+// ApplyTransaction takes a transaction struct and
 // applies the described effect to the state machine
 func (s *State) ApplyTransaction(t Transaction) (string, error) {
 	switch t.TType {
@@ -94,7 +94,7 @@ func (s *State) ApplyTransaction(t Transaction) (string, error) {
 	}
 }
 
-// Generate transaction creates a transaction struct
+// GenerateTransaction creates a transaction struct
 func GenerateTransaction(opType Operation, key string, value string) Transaction {
 	t := Transaction{opType, key, value}
 	return t

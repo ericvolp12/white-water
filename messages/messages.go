@@ -87,12 +87,16 @@ func DeleteClient(c *Client) {
 	c.sub.Close()
 }
 
+// ReceiveMessage pops a message off the queue and hands it to the
+// calling process
 func (c *Client) ReceiveMessage() *Message {
+	// If we have a message in the buffer, send it back
 	select {
 	case msg := <-c.buffer:
 		return &msg
 	default:
 	}
+	// Actually get the message from ZMQ
 	msg, err := c.sub.RecvMessage(zmq.DONTWAIT)
 	if err != nil {
 		return nil
@@ -104,6 +108,7 @@ func (c *Client) ReceiveMessage() *Message {
 	// Index 2 should be the json payload
 	json.Unmarshal([]byte(msg[2]), &dMsg)
 
+	// Convert to standard message from a DumbMessage
 	cMsg := Message{}
 	cMsg.Destination = []string{dMsg.Destination}
 	cMsg.Type = dMsg.Type
