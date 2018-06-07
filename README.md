@@ -31,7 +31,7 @@ Once you've built the source, you can stay in the directory that contains `node.
 
 Our tests are inside `tests/` and can be run with the `--run` flag in chistributed.
 
-For tests with more than 4 nodes, please include a `--config-file tests/seven-nodes.conf` flag when running chistributed.
+For tests with 5 nodes, please include a `--config-file tests/five-nodes.conf` flag when running chistributed.
 
 Example outputs of our test runs are provided in the `tests/` directory.
 
@@ -39,3 +39,35 @@ You'll note that our tests don't always look the same because leader election in
 
 To get around this, we provided output from non-leader nodes that point to the current leader and also provide answers to get requests so tests are easier to run.
 
+
+## Tests
+Run tests from the impl directory:
+
+1. Basic set and get behavior
+chistributed --run scripts/basic-sets.chi
+
+2. Multiple sets
+chistributed --run scripts/multi-sets.chi
+
+3. Numerous Sets and gets (> 80)
+chistributed --run scripts/big-sets.chi
+
+4. Basic Failures
+chistributed --run scripts/simple-fail.chi
+
+5. Multiple Different Failures
+chistributed --run scripts/multi-fail.chi
+
+6. Basis Partition
+chistributed --run scripts/basic-partition.chi
+
+7. Partition with Leader in majority
+chistributed --config-file scripts/five-nodes.conf --run scripts/big-1-partition.chi
+
+8. Partition with Leader in minority
+chistributed --config-file scripts/five-nodes.conf --run scripts/big-2-partition.chi
+
+Tests outputs from the creators of White Water, are in impl/scripts
+and are of the form testname-sample.out
+
+These tests were run on UChicago CS VM 201718.3 (Ubuntu 16.04.3 LTS)
