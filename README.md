@@ -19,6 +19,8 @@ White Water is separated into 3 modules
 ## Running White Water
 To run White Water, first ensure you have Golang installed and correctly configured, we recommend Go 1.8+.
 
+For additional instructions, see [Golang Installation](https://golang.org/doc/install).
+
 Next, ensure you have the ZeroMQ dependencies by installing `ZeroMQ version 4.0.1 or above. To use CURVE security in versions prior to 4.2, ZeroMQ must be installed with libsodium enabled.`
 
 For additional instructions, see the [ZMQ4 Github Project](https://github.com/pebbe/zmq4).
