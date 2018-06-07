@@ -56,6 +56,7 @@ func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.
 	return nil
 }
 
+// Checks all prepared indices in an appendReply, majority prepared moves up the commit index
 func (s *Sailor) handle_prepare(PrepLower uint, PrepUpper uint) error {
 
 	for i := PrepLower; i <= PrepUpper; i++ {
