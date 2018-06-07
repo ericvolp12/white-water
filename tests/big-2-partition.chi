@@ -14,7 +14,7 @@ wait -t 2
 
 create_partition -n part -p node-1,node-2,node-3 -2 node-4,node-5,node-6,node-7
 
-wait -t 30
+wait -t 10
 
 set -n node-4 -k b -v 43
 set -n node-4 -k c -v 44
@@ -64,7 +64,11 @@ get -n node-3 -k d
 get -n node-4 -k d 
 get -n node-5 -k d 
 get -n node-6 -k d 
-get -n node-7 -k d 
+get -n node-7 -k d
+
+get -n node-1 -k shouldFail 
+get -n node-1 -k shouldFail2 
+get -n node-1 -k shouldFail3
 
 wait -t 2
 

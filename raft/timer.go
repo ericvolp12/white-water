@@ -15,7 +15,7 @@ import (
 // Used in requestVote.go:handle_timeout(), handle_requestVote,
 // and append.go:handleAppendEntries()
 func new_time() time.Duration {
-	return time.Duration((rand.Intn(150) + 150)) * time.Millisecond
+	return time.Duration((rand.Intn(300) + 150)) * time.Millisecond
 }
 
 // Returns a new timer duration of 50 milliseconds used for triggering a
