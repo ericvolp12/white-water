@@ -69,4 +69,4 @@ and are of the form [testname]-sample.out
 
 These tests were run on two machines.
 Machine 1: UChicago CS VM 201718.3 (Ubuntu 16.04.3 LTS)
-Machine 2: Dell Precision 5510, 32GB of RAM, Intel(R) Xeon(R) CPU E3-1505M v5 @ 2.80GHz
+Machine 2: Dell Precision 5510, 32GB of RAM, Intel(R) Xeon(R) CPU E3-1505M v5 @ 2.80GHz (Ubuntu 16.04.4 LTS)
