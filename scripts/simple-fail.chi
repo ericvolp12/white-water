@@ -14,7 +14,7 @@ wait -t 2
 
 fail_node -n node-1
 
-wait -t 5
+wait -t 10
 
 get -n node-2 -k A
 get -n node-2 -k B

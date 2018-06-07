@@ -1,38 +1,35 @@
-SET id=1 OK: a = 42
-SET id=2 OK: status = ========== Creating Partition: {1,2} {3,4,5} ==========
-ERROR: SET id=6 failed (b=43): |Src:node-5| Current Leader is node-4
-ERROR: SET id=7 failed (c=44): |Src:node-5| Current Leader is node-4
-ERROR: SET id=8 failed (d=45): |Src:node-5| Current Leader is node-4
-ERROR: SET id=9 failed (b=43): |Src:node-3| Current Leader is node-4
-ERROR: SET id=10 failed (c=44): |Src:node-3| Current Leader is 
-ERROR: SET id=11 failed (d=45): |Src:node-3| Current Leader is 
-ERROR: SET id=14 failed (shouldFail3=fail3): |Src:node-1| Current Leader is 
-SET id=3 OK: b = 43
-SET id=4 OK: c = 44
-SET id=5 OK: d = 45
-ERROR: SET id=12 failed (shouldFail=fail1): SET FAILED
-ERROR: SET id=13 failed (shouldFail2=fail2): SET FAILED
-ERROR: SET id=15 failed (status================ Removing Partition ===============): |Src:node-3| Current Leader is node-4
-ERROR: GET id=16 failed (k=a): a= 42 : Current Leader is node-4
-ERROR: GET id=17 failed (k=a): a= 42 : Current Leader is node-4
-ERROR: GET id=18 failed (k=a): a= 42 : Current Leader is node-4
-GET id=19 OK: a = 42
-ERROR: GET id=20 failed (k=a): a= 42 : Current Leader is node-4
-ERROR: GET id=21 failed (k=b): b= 43 : Current Leader is node-4
-ERROR: GET id=22 failed (k=b): b= 43 : Current Leader is node-4
-ERROR: GET id=23 failed (k=b): b= 43 : Current Leader is node-4
-GET id=24 OK: b = 43
-ERROR: GET id=25 failed (k=b): b= 43 : Current Leader is node-4
-ERROR: GET id=26 failed (k=c): c= 44 : Current Leader is node-4
-ERROR: GET id=27 failed (k=c): c= 44 : Current Leader is node-4
-ERROR: GET id=28 failed (k=c): c= 44 : Current Leader is node-4
-GET id=29 OK: c = 44
-ERROR: GET id=30 failed (k=c): c= 44 : Current Leader is node-4
-ERROR: GET id=31 failed (k=d): d= 45 : Current Leader is node-4
-ERROR: GET id=32 failed (k=d): d= 45 : Current Leader is node-4
-ERROR: GET id=33 failed (k=d): d= 45 : Current Leader is node-4
-GET id=34 OK: d = 45
-ERROR: GET id=35 failed (k=d): d= 45 : Current Leader is node-4
-ERROR: GET id=36 failed (k=shouldFail): |Src: node-1|No such key: shouldFail : Current Leader is node-4
-ERROR: GET id=37 failed (k=shouldFail2): |Src: node-1|No such key: shouldFail2 : Current Leader is node-4
-ERROR: GET id=38 failed (k=shouldFail3): |Src: node-1|No such key: shouldFail3 : Current Leader is node-4
+SET id=1 OK: TEST_STATUS =  ========== Creating Partition: {1,2,3} {4,5} ==========
+SET id=2 OK: b = 43
+SET id=3 OK: c = 44
+SET id=4 OK: d = 45
+GET id=5 OK: b = 43
+ERROR: GET id=6 failed (k=b): |Src: node-2 | b= 43 : Current Leader is node-1
+ERROR: GET id=7 failed (k=b): |Src: node-3 | b= 43 : Current Leader is node-1
+ERROR: GET id=8 failed (k=b): |Src: node-4 | No such key: b : In Election Cycle
+ERROR: GET id=9 failed (k=b): |Src: node-5 | No such key: b : In Election Cycle
+GET id=10 OK: c = 44
+ERROR: GET id=11 failed (k=c): |Src: node-2 | c= 44 : Current Leader is node-1
+ERROR: GET id=12 failed (k=c): |Src: node-3 | c= 44 : Current Leader is node-1
+ERROR: GET id=13 failed (k=c): |Src: node-4 | No such key: c : In Election Cycle
+ERROR: GET id=14 failed (k=c): |Src: node-5 | No such key: c : In Election Cycle
+GET id=15 OK: d = 45
+ERROR: GET id=16 failed (k=d): |Src: node-2 | d= 45 : Current Leader is node-1
+ERROR: GET id=17 failed (k=d): |Src: node-3 | d= 45 : Current Leader is node-1
+ERROR: GET id=18 failed (k=d): |Src: node-4 | No such key: d : In Election Cycle
+ERROR: GET id=19 failed (k=d): |Src: node-5 | No such key: d : In Election Cycle
+ERROR: SET id=20 failed (TEST_STATUS= ========== Removing Partition ==========): |Src:node-1 | Current Leader is node-3
+ERROR: GET id=21 failed (k=b): |Src: node-1 | b= 43 : Current Leader is node-3
+ERROR: GET id=22 failed (k=b): |Src: node-2 | b= 43 : Current Leader is node-3
+GET id=23 OK: b = 43
+ERROR: GET id=24 failed (k=b): |Src: node-4 | b= 43 : Current Leader is node-3
+ERROR: GET id=25 failed (k=b): |Src: node-5 | b= 43 : Current Leader is node-3
+ERROR: GET id=26 failed (k=c): |Src: node-1 | c= 44 : Current Leader is node-3
+ERROR: GET id=27 failed (k=c): |Src: node-2 | c= 44 : Current Leader is node-3
+GET id=28 OK: c = 44
+ERROR: GET id=29 failed (k=c): |Src: node-4 | c= 44 : Current Leader is node-3
+ERROR: GET id=30 failed (k=c): |Src: node-5 | c= 44 : Current Leader is node-3
+ERROR: GET id=31 failed (k=d): |Src: node-1 | d= 45 : Current Leader is node-3
+ERROR: GET id=32 failed (k=d): |Src: node-2 | d= 45 : Current Leader is node-3
+GET id=33 OK: d = 45
+ERROR: GET id=34 failed (k=d): |Src: node-4 | d= 45 : Current Leader is node-3
+ERROR: GET id=35 failed (k=d): |Src: node-5 | d= 45 : Current Leader is node-3

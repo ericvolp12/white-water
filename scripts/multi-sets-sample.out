@@ -1,0 +1,6 @@
+ERROR: SET id=2 failed (wow=55): |Src:node-3 | Current Leader is node-1
+ERROR: SET id=3 failed (yo=12): |Src:node-2 | Current Leader is node-1
+SET id=1 OK: ello = 37
+ERROR: GET id=4 failed (k=ello): |Src: node-3 | ello= 37 : Current Leader is node-1
+ERROR: GET id=5 failed (k=wow): |Src: node-2 | No such key: wow : Current Leader is node-1
+ERROR: GET id=6 failed (k=yo): No such key: yo

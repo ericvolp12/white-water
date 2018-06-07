@@ -6,18 +6,18 @@ GET id=5 OK: A = 1
 GET id=6 OK: B = 2
 GET id=7 OK: C = 3
 GET id=8 OK: D = 4
-ERROR: SET id=10 failed (E=6): |Src:node-3| Current Leader is node-2
-ERROR: SET id=11 failed (E=7): |Src:node-4| Current Leader is node-2
+ERROR: SET id=10 failed (E=6): |Src:node-3 | Current Leader is node-2
 SET id=9 OK: E = 5
+ERROR: SET id=11 failed (E=7): |Src:node-4 | Current Leader is node-2
 GET id=12 OK: E = 5
-ERROR: SET id=13 failed (E=E FINAL VALUE): |Src:node-3| Current Leader is node-1
-ERROR: SET id=14 failed (E=E FINAL VALUE): |Src:node-4| Current Leader is node-1
+ERROR: SET id=13 failed (E=E FINAL VALUE): |Src:node-3 | Current Leader is node-1
+ERROR: SET id=14 failed (E=E FINAL VALUE): |Src:node-4 | Current Leader is node-1
 SET id=15 OK: E = E FINAL VALUE
-ERROR: SET id=18 failed (G=1000): |Src:node-3| Current Leader is node-1
-ERROR: SET id=19 failed (G=1000): |Src:node-4| Current Leader is node-1
+ERROR: SET id=18 failed (G=1000): |Src:node-3 | Current Leader is node-1
+ERROR: SET id=19 failed (G=1000): |Src:node-4 | Current Leader is node-1
 SET id=20 OK: G = 1000
 ERROR: SET id=16 failed (A=FAILED A VALUE): SET FAILED
 ERROR: SET id=17 failed (B=FAILED B VALUE): SET FAILED
-ERROR: GET id=21 failed (k=E): E= E FINAL VALUE : Current Leader is node-1
-ERROR: GET id=22 failed (k=A): A= 1 : Current Leader is node-1
-ERROR: GET id=23 failed (k=G): G= 1000 : Current Leader is node-1
+ERROR: GET id=21 failed (k=E): |Src: node-2 | E= E FINAL VALUE : Current Leader is node-1
+ERROR: GET id=22 failed (k=A): |Src: node-2 | A= 1 : Current Leader is node-1
+ERROR: GET id=23 failed (k=G): |Src: node-2 | G= 1000 : Current Leader is node-1

@@ -46,7 +46,6 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	if err != nil {
 		fmt.Printf("Error creating requester: %v\n", err)
 	}
-	//	fmt.Println("Requester client to connect to router...")
 	// Connect requester to router
 	requester.Connect(routerEndpoint)
 	// Set identity to our node name so we can get messages
@@ -59,7 +58,6 @@ func CreateClient(pubEndpoint string, routerEndpoint string, nodeName string, pe
 	if err != nil {
 		fmt.Printf("Error creating subscriber: %v\n", err)
 	}
-	//fmt.Println("Subscriber client trying to connect to Pub Endpoint...")
 	// Connect subscriber to publisher endpoint
 	sub.Connect(pubEndpoint)
 	// Linger set to 0 so we don't deadlock
@@ -100,7 +98,6 @@ func (c *Client) ReceiveMessage() *Message {
 	msg, err := c.sub.RecvMessage(zmq.DONTWAIT)
 	if err != nil {
 		return nil
-		//log.Fatal("Error receiveing message: %v\n", err)
 	}
 
 	dMsg := dumbMessage{}
@@ -127,7 +124,6 @@ func (c *Client) sendMessage(msg Message) error {
 	// Marshal message object into json
 	// Because the docs are wrong we gotta send many messages
 	if len(msg.Destination) > 0 {
-		//fmt.Printf("Sending dumb messages, Borja be damned!\n")
 		for _, dest := range msg.Destination {
 			dMsg := dumbMessage{}
 			dMsg.Destination = dest
@@ -161,7 +157,6 @@ func (c *Client) sendMessage(msg Message) error {
 				fmt.Printf("Error in sendMessage (%s, %+v)\n", c.NodeName, err)
 			}
 			// Print out the ack
-			//fmt.Printf("Ack: %v\n", ack)
 		}
 	} else {
 		dMsg := dumbMessage{}
@@ -193,7 +188,6 @@ func (c *Client) sendMessage(msg Message) error {
 		// Wait for an ack response
 		_, err = c.req.RecvMessage(0)
 		// Print out the ack
-		//fmt.Printf("Ack: %v\n", ack)
 	}
 	return nil
 }
@@ -201,28 +195,24 @@ func (c *Client) sendMessage(msg Message) error {
 // Broadcast sends a message to all of a client's peers
 func (c *Client) Broadcast(msg Message) error {
 	msg.Destination = c.Peers
-	//fmt.Printf("Broadcasting message to all peers... %s\n", c.NodeName)
 	return c.sendMessage(msg)
 }
 
 // SendToPeer sends to a specific peer
 func (c *Client) SendToPeer(msg Message, peer string) error {
 	msg.Destination = []string{peer}
-	//fmt.Printf("Sending message one peer... %+v\n", msg)
 	return c.sendMessage(msg)
 }
 
 // SendToPeers sends to a set of peers
 func (c *Client) SendToPeers(msg Message, peers []string) error {
 	msg.Destination = peers
-	//fmt.Printf("Sending message to specific peers...\n")
 	return c.sendMessage(msg)
 }
 
 // SendToBroker sends a message to the broker and no one else
 func (c *Client) SendToBroker(msg Message) error {
 	msg.Destination = []string{}
-	//fmt.Printf("Sending message to broker...\n")
 	msg.Print()
 	return c.sendMessage(msg)
 }
@@ -233,7 +223,6 @@ func (m *Message) Print() {
 	if err != nil {
 		fmt.Printf("Error printing message: %v\n", err)
 	}
-	//fmt.Printf("Message: %v\n", string(formattedMsg))
 }
 
 // Print prints a message
@@ -242,5 +231,4 @@ func (m *dumbMessage) print() {
 	if err != nil {
 		fmt.Printf("Error printing message: %v\n", err)
 	}
-	//fmt.Printf("Message: %v\n", string(formattedMsg))
 }

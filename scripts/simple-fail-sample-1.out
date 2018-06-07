@@ -2,23 +2,22 @@ SET id=1 OK: A = 1
 SET id=2 OK: B = 2
 SET id=3 OK: C = 3
 SET id=4 OK: D = 4
-ERROR: GET id=5 failed (k=A): A= 1 : Current Leader is node-4
-ERROR: GET id=6 failed (k=B): B= 2 : Current Leader is node-4
-ERROR: GET id=7 failed (k=C): C= 3 : Current Leader is node-4
-ERROR: GET id=8 failed (k=D): D= 4 : Current Leader is node-4
-ERROR: SET id=9 failed (E=5): |Src:node-2| Current Leader is node-4
-ERROR: SET id=10 failed (E=6): |Src:node-3| Current Leader is node-4
+ERROR: GET id=5 failed (k=A): |Src: node-2 | A= 1 : Current Leader is node-4
+ERROR: GET id=6 failed (k=B): |Src: node-2 | B= 2 : Current Leader is node-4
+ERROR: GET id=7 failed (k=C): |Src: node-2 | C= 3 : Current Leader is node-4
+ERROR: GET id=8 failed (k=D): |Src: node-2 | D= 4 : Current Leader is node-4
+ERROR: SET id=9 failed (E=5): |Src:node-2 | Current Leader is node-4
+ERROR: SET id=10 failed (E=6): |Src:node-3 | Current Leader is node-4
 SET id=11 OK: E = 7
-ERROR: GET id=12 failed (k=E): E= 7 : Current Leader is node-4
-ERROR: SET id=13 failed (E=E FINAL VALUE): |Src:node-3| Current Leader is node-4
-ERROR: SET id=15 failed (E=E FINAL VALUE): |Src:node-1| Current Leader is node-4
+ERROR: GET id=12 failed (k=E): |Src: node-1 | E= 7 : Current Leader is node-4
+ERROR: SET id=13 failed (E=E FINAL VALUE): |Src:node-3 | Current Leader is node-4
+ERROR: SET id=15 failed (E=E FINAL VALUE): |Src:node-1 | Current Leader is node-4
+SET id=14 OK: E = E FINAL VALUE
 ERROR: SET id=16 failed (A=FAILED A VALUE): |Src:node-2 | Election in progress
 ERROR: SET id=17 failed (B=FAILED B VALUE): |Src:node-2 | Election in progress
-SET id=14 OK: E = E FINAL VALUE
-ERROR: SET id=18 failed (G=1000): |Src:node-3| Current Leader is node-4
-ERROR: SET id=20 failed (G=1000): |Src:node-1| Current Leader is node-4
+ERROR: SET id=18 failed (G=1000): |Src:node-3 | Current Leader is node-4
+ERROR: SET id=20 failed (G=1000): |Src:node-1 | Current Leader is node-4
 SET id=19 OK: G = 1000
-ERROR: GET id=21 failed (k=E): E= E FINAL VALUE : Current Leader is node-3
-ERROR: GET id=22 failed (k=A): A= 1 : Current Leader is node-3
-ERROR: GET id=23 failed (k=G): G= 1000 : Current Leader is node-3
-
+ERROR: GET id=21 failed (k=E): |Src: node-2 | E= E FINAL VALUE : Current Leader is node-4
+ERROR: GET id=22 failed (k=A): |Src: node-2 | A= 1 : Current Leader is node-4
+ERROR: GET id=23 failed (k=G): |Src: node-2 | G= 1000 : Current Leader is node-4

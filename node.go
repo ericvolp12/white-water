@@ -22,6 +22,7 @@ func (i *arrayFlags) Set(value string) error {
 	return nil
 }
 
+// Initialize node's ZMQ messaging and White Water MsgHandler
 func main() {
 	var peers arrayFlags
 
@@ -48,5 +49,4 @@ func main() {
 	state := storage.InitializeState()
 	client.HandleSingleHello()
 	s.MsgHandler(&state, len(client.Peers))
-
 }

@@ -1,0 +1,6 @@
+SET id=1 OK: a = 42
+SET id=2 OK: b = 43
+GET id=3 OK: b = 43
+ERROR: GET id=4 failed (k=b): |Src: node-2 | b= 43 : Current Leader is node-1
+ERROR: GET id=5 failed (k=b): |Src: node-3 | b= 43 : Current Leader is node-1
+ERROR: GET id=6 failed (k=b): |Src: node-4 | b= 43 : Current Leader is node-1

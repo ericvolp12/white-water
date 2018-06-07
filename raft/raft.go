@@ -211,7 +211,7 @@ func getPayload(value string, payload interface{}) error {
 	return nil
 }
 
-// becomeFollower c\onverts Sailor into follower state (Normally if msg.Term > s.currentTerm)
+// becomeFollower converts Sailor into follower state (Normally if msg.Term > s.currentTerm)
 func (s *Sailor) becomeFollower(term uint) {
 	fmt.Printf("Becoming follower! %s\n", s.client.NodeName)
 	s.currentTerm = term

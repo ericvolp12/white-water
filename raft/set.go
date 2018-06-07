@@ -18,7 +18,7 @@ func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 func (s *Sailor) setReject(msg *messages.Message) error {
 	rej := makeReply(s, msg, "setResponse")
 	if s.state != candidate {
-		rej.Error = "|Src:" + s.client.NodeName + "|" + " Current Leader is " + s.leaderId
+		rej.Error = "|Src:" + s.client.NodeName + " | Current Leader is " + s.leaderId
 	} else {
 		rej.Error = "|Src:" + s.client.NodeName + " | Election in progress"
 	}
@@ -29,9 +29,7 @@ func (s *Sailor) setReject(msg *messages.Message) error {
 // Checks for all commited transactions in an appendReply, majority commited get a broker reply
 func (s *Sailor) handle_commit(lowCommit uint, upperCommit uint, state *storage.State) error {
 	majority := uint((len(s.client.Peers) + 1) / 2)
-	//fmt.Printf("low: %d, high: %d\n", lowCommit, upperCommit)
 	for i := int(lowCommit); i <= int(upperCommit)-1; i++ {
-		//fmt.Printf("i: %d\n", i)
 		s.log[i].votes += 1 // Increments the number of commits
 		if s.log[i].votes == majority && s.log[i].Id != -1 {
 			_, err := state.ApplyTransaction(s.log[i].Trans)

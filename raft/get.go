@@ -40,12 +40,12 @@ func (s *Sailor) getAttempt(msg messages.Message, st *storage.State) error {
 	reply := makeReply(s, &msg, "getResponse")
 	if err != nil {
 		if s.state == candidate {
-			reply.Error = err.Error() + " : In Election Cycle"
+			reply.Error = "|Src: " + s.client.NodeName + " | " + err.Error() + " : In Election Cycle"
 		} else {
-			reply.Error = "|Src: " + s.client.NodeName + "|" + err.Error() + " : Current Leader is " + s.leaderId
+			reply.Error = "|Src: " + s.client.NodeName + " | " + err.Error() + " : Current Leader is " + s.leaderId
 		}
 	} else {
-		reply.Error = msg.Key + "= " + item + " : Current Leader is " + s.leaderId
+		reply.Error = "|Src: " + s.client.NodeName + " | " + msg.Key + "= " + item + " : Current Leader is " + s.leaderId
 	}
 	return s.client.SendToBroker(reply)
 }
