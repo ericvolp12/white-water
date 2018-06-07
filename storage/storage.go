@@ -8,7 +8,7 @@ import (
 
 type Operation int
 
-const (
+const ( // Enumeration of op types
 	GetOp Operation = iota
 	SetOp
 	DeleteOp

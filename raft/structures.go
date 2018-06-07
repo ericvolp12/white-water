@@ -88,7 +88,6 @@ type requestVote struct { //type="requestVote"
 type reply struct { //type="voteReply"
 	Term        uint // The term of the voter
 	VoteGranted bool // Whether or not the candidate got the vote
-	Success     bool // Whether or not the call was successful
 }
 
 // InitializeSailor takes a network client and returns a pointer
