@@ -31,6 +31,7 @@ func (s *Sailor) handle_timeout() error {
 	s.currentTerm += 1
 	s.votedFor = s.client.NodeName // Voting for itself
 	s.numVotes = 1
+	s.leaderId = ""
 
 	// Fill RequestVotes RPC struct
 	newmsg := requestVote{}

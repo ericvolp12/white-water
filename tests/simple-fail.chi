@@ -20,14 +20,42 @@ get -n node-2 -k A
 get -n node-2 -k B
 get -n node-2 -k C
 get -n node-2 -k D
+
 set -n node-2 -k E -v 5
+set -n node-3 -k E -v 6
+set -n node-4 -k E -v 7
 
 recover_node -n node-1
 
-wait -t 5
+wait -t 10
 
 fail_node -n node-2
 
 wait -t 5
 
 get -n node-1 -k E
+
+wait -t 5
+set -n node-3 -k E -v "E FINAL VALUE"
+set -n node-4 -k E -v "E FINAL VALUE"
+set -n node-1 -k E -v "E FINAL VALUE"
+
+set -n node-2 -k A -v "FAILED A VALUE"
+set -n node-2 -k B -v "FAILED B VALUE"
+wait -t 5
+
+set -n node-3 -k G -v 1000
+set -n node-4 -k G -v 1000
+set -n node-1 -k G -v 1000
+
+wait -t 5
+
+recover_node -n node-2
+wait -t 5
+
+get -n node-2 -k E
+get -n node-2 -k A
+get -n node-2 -k G
+
+wait -t 5
+quit
