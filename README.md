@@ -44,30 +44,30 @@ To get around this, we provided output from non-leader nodes that point to the c
 Run tests from the impl directory:
 
 1. Basic set and get behavior
-chistributed --run scripts/basic-sets.chi
+`chistributed --run scripts/basic-sets.chi`
 
 2. Multiple sets
-chistributed --run scripts/multi-sets.chi
+`chistributed --run scripts/multi-sets.chi`
 
 3. Numerous Sets and gets (> 80)
-chistributed --run scripts/big-sets.chi
+`chistributed --run scripts/big-sets.chi`
 
 4. Basic Failures
-chistributed --run scripts/simple-fail.chi
+`chistributed --run scripts/simple-fail.chi`
 
 5. Multiple Different Failures
-chistributed --run scripts/multi-fail.chi
+`chistributed --run scripts/multi-fail.chi`
 
 6. Basis Partition
-chistributed --run scripts/basic-partition.chi
+`chistributed --run scripts/basic-partition.chi`
 
 7. Partition with Leader in majority
-chistributed --config-file scripts/five-nodes.conf --run scripts/big-1-partition.chi
+`chistributed --config-file scripts/five-nodes.conf --run scripts/big-1-partition.chi`
 
 8. Partition with Leader in minority
-chistributed --config-file scripts/five-nodes.conf --run scripts/big-2-partition.chi
+`chistributed --config-file scripts/five-nodes.conf --run scripts/big-2-partition.chi`
 
-Tests outputs from the creators of White Water, are in impl/scripts
-and are of the form testname-sample.out
+Tests outputs from the creators of White Water are in impl/scripts
+and are of the form [testname]-sample.out
 
 These tests were run on UChicago CS VM 201718.3 (Ubuntu 16.04.3 LTS)
