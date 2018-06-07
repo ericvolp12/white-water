@@ -7,6 +7,12 @@ White Water is separated into 3 modules
     - `messages.go` - Contains logic for ZeroMQ clients and ways to register message handlers and subscribe to specific types of messages.
     - `hello.go` - Contains a handler for hello messages from the ZeroMQ broker
 2. `raft` which handles Raft consensus logic
+    - `append.go` - Handles processing of Append Entries RPC messages
+    - `get.go` - Handles processing of Get messages from a client.
+    - `raft.go` - Contains core Raft logic with helper functions for message interaction and routing RPCs to respective handlers.
+    - `requestVote.go` - Handles processing of Request Vote RPC messages and all other election process logic
+    - `stuctures.go` - Holds all the data for the node structs and the RPC messages we use in Raft
+    - `timer.go` - Contains utility functions for reseting the timer used in raft elections, timeouts, and heartbeats
 3. `storage` which handles the state machine interface
     - `storage.go` - Contains structures for managing the state of the node and logs. Implements the get and set interfaces for updating the local model after a consensus round. Allows leaders to get local values from the model.
 
