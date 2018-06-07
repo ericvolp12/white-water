@@ -33,9 +33,9 @@ Once you've built the source, you can stay in the directory that contains `node.
 
 Our tests are inside `tests/` and can be run with the `--run` flag in chistributed.
 
-For tests with 5 nodes, please include a `--config-file tests/five-nodes.conf` flag when running chistributed.
+For tests with 5 nodes, please include a `--config-file scripts/five-nodes.conf` flag when running chistributed.
 
-Example outputs of our test runs are provided in the `tests/` directory.
+Example outputs of our test runs are provided in the `scripts/` directory.
 
 You'll note that our tests don't always look the same because leader election in Raft is nondeterministic, thus the leader node is not predictable when causing specific failures.
 
