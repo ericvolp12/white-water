@@ -1,0 +1,58 @@
+start -n node-1
+start -n node-2
+start -n node-3
+start -n node-4
+
+wait -t 5
+
+fail_node -n node-3
+fail_node -n node-4
+
+wait -t 2
+
+set -n node-1 -k A -v "STARTING A VALUE"
+set -n node-1 -k B -v "STARTING B VALUE"
+set -n node-1 -k C -v "STARTING C VALUE"
+set -n node-1 -k D -v "STARTING C VALUE"
+
+wait -t 2
+
+get -n node-1 -k A
+get -n node-1 -k B
+get -n node-1 -k C
+get -n node-1 -k D
+
+wait -t 2
+
+recover_node -n node-3
+
+wait -t 10
+
+get -n node-1 -k A
+get -n node-1 -k B
+get -n node-1 -k C
+get -n node-1 -k D
+
+get -n node-2 -k A
+get -n node-2 -k B
+get -n node-2 -k C
+get -n node-2 -k D
+
+get -n node-3 -k A
+get -n node-3 -k B
+get -n node-3 -k C
+get -n node-3 -k D
+
+wait -t 2
+
+recover_node -n node-4
+
+wait -t 10
+
+get -n node-4 -k A
+get -n node-4 -k B
+get -n node-4 -k C
+get -n node-4 -k D
+
+wait -t 4
+quit

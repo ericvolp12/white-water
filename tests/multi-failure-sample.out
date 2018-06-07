@@ -1,0 +1,24 @@
+ERROR: GET id=5 failed (k=A): No such key: A
+ERROR: GET id=6 failed (k=B): No such key: B
+ERROR: GET id=7 failed (k=C): No such key: C
+ERROR: GET id=8 failed (k=D): No such key: D
+SET id=1 OK: A = STARTING A VALUE
+SET id=2 OK: B = STARTING B VALUE
+SET id=3 OK: C = STARTING C VALUE
+SET id=4 OK: D = STARTING C VALUE
+GET id=9 OK: A = STARTING A VALUE
+GET id=10 OK: B = STARTING B VALUE
+GET id=11 OK: C = STARTING C VALUE
+ERROR: GET id=13 failed (k=A): A= STARTING A VALUE : Current Leader is node-1
+GET id=12 OK: D = STARTING C VALUE
+ERROR: GET id=14 failed (k=B): B= STARTING B VALUE : Current Leader is node-1
+ERROR: GET id=15 failed (k=C): C= STARTING C VALUE : Current Leader is node-1
+ERROR: GET id=16 failed (k=D): D= STARTING C VALUE : Current Leader is node-1
+ERROR: GET id=17 failed (k=A): A= STARTING A VALUE : Current Leader is node-1
+ERROR: GET id=18 failed (k=B): B= STARTING B VALUE : Current Leader is node-1
+ERROR: GET id=19 failed (k=C): C= STARTING C VALUE : Current Leader is node-1
+ERROR: GET id=20 failed (k=D): D= STARTING C VALUE : Current Leader is node-1
+ERROR: GET id=21 failed (k=A): A= STARTING A VALUE : Current Leader is node-3
+ERROR: GET id=22 failed (k=B): B= STARTING B VALUE : Current Leader is node-3
+ERROR: GET id=23 failed (k=C): C= STARTING C VALUE : Current Leader is node-3
+ERROR: GET id=24 failed (k=D): D= STARTING C VALUE : Current Leader is node-3
