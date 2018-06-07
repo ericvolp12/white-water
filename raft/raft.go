@@ -17,8 +17,8 @@ import (
 // It will loop over all incoming messages to determine where to process them
 // and shunts them off appropriately.
 // It also handles election timeout processing.
-func (s *Sailor) MsgHandler(state *storage.State) {
-	s.timer = time.NewTimer(time.Second * 2) // Make the first delay longer so other nodes can start
+func (s *Sailor) MsgHandler(state *storage.State, peerCount int) {
+	s.timer = time.NewTimer(time.Second * time.Duration(peerCount)) // Make the first delay longer so other nodes can start
 	for {
 		// Choose the timeout if it exists, otherwise try and get a message from the network
 		select {

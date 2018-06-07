@@ -45,6 +45,6 @@ func main() {
 
 	state := storage.InitializeState()
 	client.HandleSingleHello()
-	s.MsgHandler(&state)
+	s.MsgHandler(&state, len(client.Peers))
 
 }
