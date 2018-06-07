@@ -1,0 +1,71 @@
+start -n node-1
+start -n node-2
+start -n node-3
+start -n node-4
+start -n node-5
+start -n node-6
+start -n node-7
+
+wait -t 5
+
+set -n node-1 -k a -v 42
+
+wait -t 2
+
+create_partition -n part -p node-1,node-2,node-3 -2 node-4,node-5,node-6,node-7
+
+wait -t 30
+
+set -n node-4 -k b -v 43
+set -n node-4 -k c -v 44
+set -n node-4 -k d -v 45
+
+set -n node-5 -k b -v 43
+set -n node-5 -k c -v 44
+set -n node-5 -k d -v 45
+
+set -n node-6 -k b -v 43
+set -n node-6 -k c -v 44
+set -n node-6 -k d -v 45
+
+set -n node-7 -k b -v 43
+set -n node-7 -k c -v 44
+set -n node-7 -k d -v 45
+
+set -n node-1 -k shouldFail -v fail1
+set -n node-1 -k shouldFail2 -v fail2
+set -n node-1 -k shouldFail3 -v fail3
+
+wait -t 2
+
+remove_partition -n part
+
+wait -t 2
+
+get -n node-1 -k b
+get -n node-2 -k b
+get -n node-3 -k b
+get -n node-4 -k b
+get -n node-5 -k b
+get -n node-6 -k b
+get -n node-7 -k b
+
+get -n node-1 -k c 
+get -n node-2 -k c 
+get -n node-3 -k c 
+get -n node-4 -k c 
+get -n node-5 -k c 
+get -n node-6 -k c 
+get -n node-7 -k c 
+
+get -n node-1 -k d 
+get -n node-2 -k d 
+get -n node-3 -k d 
+get -n node-4 -k d 
+get -n node-5 -k d 
+get -n node-6 -k d 
+get -n node-7 -k d 
+
+wait -t 2
+
+quit

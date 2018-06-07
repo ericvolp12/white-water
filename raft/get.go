@@ -42,7 +42,7 @@ func (s *Sailor) getAttempt(msg messages.Message, st *storage.State) error {
 		if s.state == candidate {
 			reply.Error = err.Error() + " : In Election Cycle"
 		} else {
-			reply.Error = err.Error() + " : Current Leader is " + s.leaderId
+			reply.Error = "|Src: " + s.client.NodeName + "|" + err.Error() + " : Current Leader is " + s.leaderId
 		}
 	} else {
 		reply.Error = msg.Key + "= " + item + " : Current Leader is " + s.leaderId

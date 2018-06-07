@@ -18,9 +18,9 @@ func (s *Sailor) handle_set(msg messages.Message, state *storage.State) {
 func (s *Sailor) setReject(msg *messages.Message) error {
 	rej := makeReply(s, msg, "setResponse")
 	if s.state != candidate {
-		rej.Error = "Current Leader is " + s.leaderId
+		rej.Error = "|Src:" + s.client.NodeName + "|" + " Current Leader is " + s.leaderId
 	} else {
-		rej.Error = "Election in progress"
+		rej.Error = "|Src:" + s.client.NodeName + " | Election in progress"
 	}
 	rej.Key = msg.Key
 	return s.client.SendToBroker(rej)
